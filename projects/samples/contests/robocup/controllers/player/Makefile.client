@@ -3,7 +3,7 @@ TARGET = client.exe
 LIBS = -lws2_32
 CXX=g++
 else
-TARGET = client
+TARGET = main
 LIBS =
 endif
 ifeq ($(MAKECMDGOALS),)
@@ -12,14 +12,26 @@ else
 GOAL = $(MAKECMDGOALS)
 endif
 
-LIBS += `pkg-config --cflags --libs protobuf`
+PROG = client
+SRCS = luatables.o OPKinematics.o Transform.o client.o
+LIBS += `pkg-config --cflags --libs protobuf` -llua5.1 build/$(GOAL)/messages.pb.o
+CFLAGS = -c -Wall -fpic
 
-.PHONY = build release debug profile
+main: luatables.o OPKinematics.o Transform.o client.o
+	$(CXX) -o $(PROG) $(SRCS) $(LIBS)
 
-build release debug profile: $(TARGET)
+luatables.o: luatables.cpp
+	$(CXX) $(CFLAGS) luatables.cpp $(LIBS)
 
-$(TARGET): client.cpp
-	$(CXX) $< build/$(GOAL)/messages.pb.o -o $@ $(LIBS)
+OPKinematics.o: OPKinematics.cpp
+	$(CXX) $(CFLAGS) OPKinematics.cpp $(LIBS)
+
+Transform.o: Transform.cpp
+	$(CXX) $(CFLAGS) Transform.cpp $(LIBS)
+
+client.o: client.cpp
+	$(CXX) $(CFLAGS) client.cpp $(LIBS)
 
 clean:
-	rm -f client.o client client.exe
+	rm -f $(SRCS) $(PROG)
+

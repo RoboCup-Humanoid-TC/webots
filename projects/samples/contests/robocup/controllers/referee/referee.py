@@ -402,7 +402,7 @@ game.ball_kickoff_translation = [0, 0, game.ball_radius + game.turf_depth]
 ball_size = 1 if field_size == 'kid' else 5
 children.importMFNodeFromString(-1, f'DEF BALL RobocupSoccerBall {{ translation 4.1408 0.0993135 {game.ball_kickoff_translation[2]} ' +
                                 f'size {ball_size} }}')
-game.side_left = game.red.id if bool(random.getrandbits(1)) else game.blue.id  # toss a coin to determine field side
+game.side_left = game.red.id
 game.kickoff = random.randint(1, 2)
 game.state = None
 game.font_size = 0.1

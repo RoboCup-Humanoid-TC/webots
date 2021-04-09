@@ -1,0 +1,1343 @@
+PROTO MRL-HSL [
+    field SFVec3f    translation         0 0 0
+    field SFRotation rotation            1 0 0 1.5708
+    field SFString   name                "MRL-HSL"                      # Is `Solid.name`.
+    field SFString   controller          "void"
+    field MFString   controllerArgs      []
+    # field SFString   contactMaterial     ""                             # Defines the `Solid.contactMaterial` for all the robot parts, except the feet and the hands.
+    # field SFString   footContactMaterial ""                             # Defines the `Solid.contactMaterial` for the feet.
+    # field SFString   handContactMaterial ""                             # Defines the `Solid.contactMaterial` for the hands.
+    # field SFString   customData          ""                             # Is `Robot.customData`.
+    field SFBool     synchronization     TRUE
+    field SFBool     selfCollision       FALSE
+    field SFInt32    cameraWidth         160
+    field SFInt32    cameraHeight        120
+    field MFNode     bodySlot            []
+    field MFNode     headSlot            []
+    field MFNode     leftFootSlot        []
+    field MFNode     rightFootSlot       []
+    field MFNode     leftHandSlot        []
+    field MFNode     rightHandSlot       []
+    field SFBool     supervisor          TRUE
+    field MFFloat    battery             []
+    field SFInt32    channel             0
+    field SFBool     showWindow          FALSE
+]
+{
+    Robot {
+        translation IS translation
+        rotation IS rotation
+        controller IS controller
+        controllerArgs IS controllerArgs
+        # customData IS customData
+        synchronization IS synchronization
+        # contactMaterial IS contactMaterial
+        selfCollision IS selfCollision
+        name IS name
+        battery IS battery
+        supervisor IS supervisor
+        showWindow IS showWindow
+        children [
+            Accelerometer {
+                translation 0 -0.0120 -0.01
+                rotation 0.0 0.707107 0.707107 3.14159
+                name "Accelerometer"
+                lookupTable [
+                    -39.24 0 0, 39.24 1024 0
+                ]
+            }
+            Gyro {
+                translation 0 -0.0120 -0.01
+                rotation -0.57735 0.57735 0.57735 2.0944
+                name "Gyro"
+                lookupTable [
+                    -27.925 0 0, 27.925 1024 0
+                ]
+            }
+            Speaker {
+                translation 0 0 0.2
+                rotation -0.129428 -0.983106 0.129428 1.58783
+                name "Speaker"
+            }
+            Group {
+                children IS bodySlot
+            }
+            MRL-HSLBodyShape {
+            }
+            DEF RECEIVER Receiver {
+                name "receiver"
+                channel IS channel
+            }
+            DEF EMITTER Emitter {
+                name "emitter"
+                channel IS channel
+            }
+            DEF SUPER_EMITTER Emitter {
+                name "super_emitter"
+                channel 2
+            }
+            DEF DNeck HingeJoint {
+                jointParameters HingeJointParameters {
+                    axis 0 -1 0
+                    anchor 0 0.05007 0
+                    dampingConstant 0.002
+                    staticFriction 0.025
+                }
+                device [
+                    RotationalMotor {
+                        name "Neck"
+                        acceleration 55
+                        maxVelocity 12.26
+                        minPosition 0
+                        maxPosition 0
+                        maxTorque 2.5
+                    }
+                    PositionSensor {
+                        name "NeckS"
+                    }
+                ]
+                endPoint Solid {
+                    name "NeckSolid"
+                    translation 0 0.05007 0
+                    rotation 0 1 0 0
+                    physics Physics {
+                        density -1
+                        mass 0.0195
+                        centerOfMass [
+                            0.11e-03 -16.73e-03 -0.01e-03
+                        ]
+                        inertiaMatrix [
+                            3816.33e-09 6913.57e-09 9216.74e-09, 34.47e-09 0.02e-09 1.61e-09
+                        ]
+                    }
+                    boundingObject Transform {
+                        translation 0 -0.009 0
+                            children [
+                                Box {
+                                    size 0.044 0.043 0.022
+                                }
+                            ]
+                    }
+                    children [
+                        MRL-HSLHeadLink {
+                        }
+                        DEF DHead HingeJoint {
+                            jointParameters HingeJointParameters {
+                                axis 1 0 0
+                                position 0
+                                dampingConstant 0.002
+                                staticFriction 0.025
+                            }
+                            device [
+                                RotationalMotor {
+                                    name "Head"
+                                    acceleration 55
+                                    maxVelocity 12.26
+                                    minPosition 0
+                                    maxPosition 0
+                                    maxTorque 2.5
+                                }
+                                PositionSensor {
+                                    name "HeadS"
+                                }
+                            ]
+                            endPoint Solid {
+                                name "HeadSolid"
+                                rotation -1 0 0 0
+                                physics Physics {
+                                    density -1
+                                    mass 0.18442
+                                    centerOfMass [
+                                        0.13e-03 18.82e-03 -0.55e-03
+                                    ]
+                                    inertiaMatrix [
+                                        203085.49e-09 151283.05e-09 248499.9e-09, 437.53e-09 -70.53e-09 -9082.83e-09
+                                    ]
+                                }
+                                boundingObject Transform {
+                                    translation 0 0.03913 -0.011895
+                                    rotation 1 0 0 0
+                                    children [
+                                        Box {
+                                            size 0.08967 0.0581 0.06793
+                                        }
+                                    ]
+                                }
+                                children [
+                                    DEF HEAD_SLOT Transform {
+                                        #translation 0 0.0329074 0.0359816
+                                        #translation 0 0 0 # vasate galoo
+                                        translation 0 0.04079 0.02004 # Khode doorbin
+                                        #translation 0 -0.05007 0 # Base frame
+                                        #translation 0 -0.06207 -0.01
+                                        children IS headSlot
+                                    }
+                                    MRL-HSLHeadShape{
+                                    }
+                                    Camera {
+                                        translation 0 0.04079 0.02004
+                                        rotation 0 -1 0 3.14159
+                                        children [
+                                            MRL-HSLCameraShape {
+                                            }
+                                        ]
+                                        name "Camera"
+                                        fieldOfView 1.0123
+                                        width IS cameraWidth
+                                        height IS cameraHeight
+                                        focus Focus {
+                                            focalDistance    0   # [0, inf)
+                                            focalLength      0   # [0, inf)
+                                            maxFocalDistance 0   # [0, inf)
+                                            minFocalDistance 0   # [0, inf)
+                                        }
+                                        zoom Zoom {
+
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            }
+            DEF DPelvYL HingeJoint {
+                jointParameters HingeJointParameters {
+                    axis 0 1 0
+                    anchor 0.0507 -0.1557 -0.01556
+                    position 0
+                    dampingConstant 0.002
+                    staticFriction 0.025
+                }
+                device [
+                    RotationalMotor {
+                        name "PelvYL"
+                        acceleration 55
+                        maxVelocity 12.26
+                        minPosition 0
+                        maxPosition 0
+                        maxTorque 6
+                    }
+                    PositionSensor {
+                        name "PelvYLS"
+                    }
+                ]
+                endPoint Solid {
+                    name "PelvYLSolid"
+                    translation 0.0507 -0.1557 -0.01556
+                    rotation 0 -1 0 0
+                    physics Physics {
+                        density -1
+                        mass 0.0396
+                        centerOfMass [
+                            0.00 23.97e-03 0.07e-03
+                        ]
+                        inertiaMatrix [
+                            29876.93e-09 21900.15e-09 14467.02e-09, 0.0000000e+00 0.0000000e+00 1016.79e-09
+                        ]
+                    }
+                    boundingObject Transform {
+                        translation 0 0.01325 0
+                        children [
+                            Box {
+                                size 0.032 0.05449 0.055
+                            }
+                        ]
+                    }
+                    children [
+                        MRL-HSLHipLinkShape{
+                        }
+                        DEF DPelvL HingeJoint {
+                            jointParameters HingeJointParameters {
+                                axis 0 0 -1
+                                position 0
+                                dampingConstant 0.002
+                                staticFriction 0.025
+                            }
+                            device [
+                                RotationalMotor {
+                                    name "PelvL"
+                                    acceleration 55
+                                    maxVelocity 12.26
+                                    minPosition 0
+                                    maxPosition 0
+                                    maxTorque 6
+                                }
+                                PositionSensor {
+                                    name "PelvLS"
+                                }
+                            ]
+                            endPoint Solid {
+                                name "PelvLSolid"
+                                rotation 0 0 -1 0
+                                physics Physics {
+                                    density -1
+                                    mass 0.28476
+                                    centerOfMass [
+                                        -0.03e-03 13.79e-03 -21.19e-03
+                                    ]
+                                    inertiaMatrix [
+                                        459779.19e-09 230579.19e-09 117803.10e-09, -2273.54e-09 -201.02e-09 -6246.12e-09
+                                    ]
+                                }
+                                boundingObject Transform {
+                                    translation 0 -0.01684 -0.0205
+                                    children [
+                                        Box {
+                                            size 0.0523 0.06166 0.09445
+                                        }
+                                    ]
+                                }
+                                children [
+                                    MRL-HSLMotorShape{
+                                    }
+                                    DEF DLegUpperL HingeJoint {
+                                        jointParameters HingeJointParameters {
+                                            axis -1 0 0
+                                            position 0
+                                            dampingConstant 0.002
+                                            staticFriction 0.025
+                                        }
+                                        device [
+                                            RotationalMotor {
+                                                name "LegUpperL"
+                                                acceleration 55
+                                                maxVelocity 12.26
+                                                minPosition 0
+                                                maxPosition 0
+                                                maxTorque 6
+                                            }
+                                            PositionSensor {
+                                                name "LegUpperLS"
+                                            }
+                                        ]
+                                        endPoint Solid {
+                                            name "LegUpperLSolid"
+                                            rotation -1 0 0 0
+                                            physics Physics {
+                                                density -1
+                                                mass 0.16356
+                                                centerOfMass [
+                                                    -0.35e-3 -94.41e-3 0
+                                                ]
+                                                inertiaMatrix [
+                                                    164981.01e-09 51762.00e-09 186180.11e-09, 2095.52e-09 0.92e-09 -19.78e-09
+                                                ]
+                                            }
+                                            boundingObject Transform {
+                                                translation 0 -0.05216 0
+                                                children [
+                                                    Box {
+                                                        size 0.05211 0.04033 0.03625
+                                                    }
+                                                ]
+                                            }
+                                            children [
+                                                MRL-HSLKnee{
+                                                }
+                                                DEF DLegLowerL HingeJoint {
+                                                    jointParameters HingeJointParameters {
+                                                        axis -1 0 0
+                                                        anchor -0 -0.12 0
+                                                        position 0
+                                                        dampingConstant 0.002
+                                                        staticFriction 0.025
+                                                    }
+                                                    device [
+                                                        RotationalMotor {
+                                                        name "LegLowerL"
+                                                        acceleration 55
+                                                        maxVelocity 12.26
+                                                        minPosition 0
+                                                        maxPosition 0
+                                                        maxTorque 6
+                                                        }
+                                                        PositionSensor {
+                                                        name "LegLowerLS"
+                                                        }
+                                                    ]
+                                                    endPoint Solid {
+                                                        name "LegLowerLSolid"
+                                                        translation -0 -0.12 0
+                                                        rotation -1 0 0 0
+                                                        physics Physics {
+                                                            density -1
+                                                            mass 0.0703098
+                                                            centerOfMass [
+                                                                -0.000592469 -0.0539545 0.00654763
+                                                            ]
+                                                            inertiaMatrix [
+                                                                9.3369608e-05 4.6295534e-05 1.1351516e-04, -9.3567395e-07 -2.3992085e-07 -1.2858493e-05
+                                                            ]
+                                                        }
+                                                        boundingObject Transform {
+                                                            translation 0 -0.03034 0.002
+                                                            children [
+                                                                Box {
+                                                                size 0.05226 0.0865 0.047
+                                                                }
+                                                            ]
+                                                        }
+                                                        children [
+                                                            MRL-HSLLowerLegShape {
+                                                            }
+                                                            DEF DAnkleL HingeJoint {
+                                                                jointParameters HingeJointParameters {
+                                                                    axis 1 0 0
+                                                                    anchor 0 -0.12 0
+                                                                    position 0
+                                                                    dampingConstant 0.002
+                                                                    staticFriction 0.025
+                                                                }
+                                                                device [
+                                                                    RotationalMotor {
+                                                                        name "AnkleL"
+                                                                        acceleration 55
+                                                                        maxVelocity 12.26
+                                                                        minPosition 0
+                                                                        maxPosition 0
+                                                                        maxTorque 6
+                                                                    }
+                                                                    PositionSensor {
+                                                                        name "AnkleLS"
+                                                                    }
+                                                                ]
+                                                                endPoint Solid {
+                                                                    name "AnkleLSolid"
+                                                                    translation 0 -0.12 0
+                                                                    rotation 1 0 0 0
+                                                                    physics Physics {
+                                                                        density -1
+                                                                        mass 0.28476
+                                                                        centerOfMass [
+                                                                            -0.03e-03 14.80e-03 -21.19e-03
+                                                                        ]
+                                                                        inertiaMatrix [
+                                                                            269670.10e-09 230599.89e-09 109627.30e-09, 855.80e-09 -201.04e-09 -8613.86e-09
+                                                                        ]
+                                                                    }
+                                                                    boundingObject Transform {
+                                                                        translation 0 0.01684 -0.0205
+                                                                        children [
+                                                                            Box {
+                                                                                size 0.0523 0.06166 0.09445
+                                                                            }
+                                                                        ]
+                                                                    }
+                                                                    children [
+                                                                        MRL-HSLAnkleMotor {
+                                                                        }
+                                                                        DEF DFootL HingeJoint {
+                                                                            jointParameters HingeJointParameters {
+                                                                                axis 0 0 1
+                                                                                position 0
+                                                                                dampingConstant 0.002
+                                                                                staticFriction 0.025
+                                                                            }
+                                                                            device [
+                                                                                RotationalMotor {
+                                                                                    name "FootL"
+                                                                                    acceleration 55
+                                                                                    maxVelocity 12.26
+                                                                                    minPosition 0
+                                                                                    maxPosition 0
+                                                                                    maxTorque 6
+                                                                                }
+                                                                                PositionSensor {
+                                                                                    name "FootLS"
+                                                                                }
+                                                                            ]
+                                                                            endPoint Solid {
+                                                                                name "FootLSolid"
+                                                                                rotation 0 0 1 0
+                                                                                physics Physics {
+                                                                                    density -1
+                                                                                    mass 0.11704
+                                                                                    centerOfMass [
+                                                                                        4.86e-03 -36.85e-03 17.34e-03
+                                                                                    ]
+                                                                                    inertiaMatrix [
+                                                                                        231922.67e-09 267222.01e-09 67627.16e-09, -2606.86e-09 4307.78e-09 -8763.48e-09
+                                                                                    ]
+                                                                                }
+                                                                                boundingObject Group {
+                                                                                    children [
+                                                                                        Transform {
+                                                                                            translation 0.00698 -0.04127 0.019
+                                                                                            children [
+                                                                                                Box {
+                                                                                                size 0.08091 0.002 0.1507
+                                                                                                }
+                                                                                            ]
+                                                                                        }
+                                                                                        Transform {
+                                                                                            translation 0.0075 -0.03427 0.09312
+                                                                                            children [
+                                                                                                Box {
+                                                                                                size 0.08091 0.014 0.002
+                                                                                                }
+                                                                                            ]
+                                                                                        }
+                                                                                        Transform {
+                                                                                            translation  0.04094 -0.04927 0.08808
+                                                                                            children [
+                                                                                                Cylinder {
+                                                                                                    height 0.012
+                                                                                                    radius 0.00458
+                                                                                                }
+                                                                                            ]
+                                                                                        }
+                                                                                        Transform {
+                                                                                            translation  -0.02697 -0.04927 0.08808
+                                                                                            children [
+                                                                                                Cylinder {
+                                                                                                    height 0.012
+                                                                                                    radius 0.00458
+                                                                                                }
+                                                                                            ]
+                                                                                        }
+                                                                                        Transform {
+                                                                                            translation  0.04094 -0.04927 -0.04893
+                                                                                            children [
+                                                                                                Cylinder {
+                                                                                                    height 0.012
+                                                                                                    radius 0.00458
+                                                                                                }
+                                                                                            ]
+                                                                                        }
+                                                                                        Transform {
+                                                                                            translation  -0.02697 -0.04927 -0.04893
+                                                                                            children [
+                                                                                                Cylinder {
+                                                                                                    height 0.012
+                                                                                                    radius 0.00458
+                                                                                                }
+                                                                                            ]
+                                                                                        }
+                                                                                    ]
+                                                                                }
+                                                                                children [
+                                                                                    DEF LEFT_FOOT_SLOT Group {
+                                                                                        children IS leftFootSlot
+                                                                                    }
+                                                                                    MRL-HSLLeftFootShape {
+                                                                                    }
+                                                                                ]
+                                                                            }
+                                                                        }
+                                                                    ]
+                                                                }
+                                                            }
+                                                        ]
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            }
+            DEF DPelvYR HingeJoint {
+                jointParameters HingeJointParameters {
+                    axis 0 1 0
+                    anchor -0.0507 -0.1557 -0.01556
+                    position 0
+                    dampingConstant 0.002
+                    staticFriction 0.025
+                }
+                device [
+                    RotationalMotor {
+                        name "PelvYR"
+                        acceleration 55
+                        maxVelocity 12.26
+                        minPosition 0
+                        maxPosition 0
+                        maxTorque 6
+                    }
+                    PositionSensor {
+                        name "PelvYRS"
+                    }
+                ]
+                endPoint Solid {
+                    name "PelvYRSolid"
+                    translation -0.0507 -0.1557 -0.01556
+                    rotation 0 -1 0 0
+                    physics Physics {
+                        density -1
+                        mass 0.0396
+                        centerOfMass [
+                            0.00 23.97e-03 0.07e-03
+                        ]
+                        inertiaMatrix [
+                            29876.93e-09 21900.15e-09 14467.02e-09, 0.0000000e+00 0.0000000e+00 1016.79e-09
+                        ]
+                    }
+                    boundingObject Transform {
+                        translation 0 0.01325 0
+                        children [
+                            Box {
+                                size 0.032 0.05449 0.055
+                            }
+                        ]
+                    }
+                    children [
+                        MRL-HSLHipLinkShape {
+                        }
+                        DEF DPelvR HingeJoint {
+                            device [
+                                RotationalMotor {
+                                    name "PelvR"
+                                    acceleration 55
+                                    maxVelocity 12.26
+                                    minPosition 0
+                                    maxPosition 0
+                                    maxTorque 6
+                                }
+                                PositionSensor {
+                                    name "PelvRS"
+                                }
+                            ]
+                            jointParameters HingeJointParameters {
+                                axis 0 0 1
+                                position 0
+                                dampingConstant 0.002
+                                staticFriction 0.025
+                            }
+                            endPoint Solid {
+                                rotation 0 0 -1 0
+                                physics Physics {
+                                    density -1
+                                    mass 0.28476
+                                    centerOfMass [
+                                        0.03e-03 13.79e-03 -21.19e-03
+                                    ]
+                                    inertiaMatrix [
+                                        459779.19e-09 230579.19e-09 117803.10e-09, 2273.54e-09 201.02e-09 -6246.12e-09
+                                    ]
+                                }
+                                boundingObject Transform {
+                                    translation 0 -0.01684 -0.0205
+                                    children [
+                                        Box {
+                                            size 0.0523 0.06166 0.09445
+                                        }
+                                    ]
+                                }
+                                children [
+                                    MRL-HSLMotorShape {
+                                    }
+                                    DEF DLegUpperR HingeJoint {
+                                        device [
+                                            RotationalMotor {
+                                                name "LegUpperR"
+                                                acceleration 55
+                                                maxVelocity 12.26
+                                                minPosition 0
+                                                maxPosition 0
+                                                maxTorque 6
+                                            }
+                                            PositionSensor {
+                                                name "LegUpperRS"
+                                            }
+                                        ]
+                                        jointParameters HingeJointParameters {
+                                            axis 1 0 0
+                                            position 0
+                                            dampingConstant 0.002
+                                            staticFriction 0.025
+                                        }
+                                        endPoint Solid {
+                                            rotation 1 0 0 0
+                                            physics Physics {
+                                                density -1
+                                                mass 0.16356
+                                                centerOfMass [
+                                                0.35e-3 -94.41e-3 0
+                                                ]
+                                                inertiaMatrix [
+                                                164981.01e-09 51762.00e-09 186180.11e-09, -2095.52e-09 -0.92e-09 -19.78e-09
+                                                ]
+                                            }
+                                            boundingObject Transform {
+                                                translation 0 -0.05216 0
+                                                children [
+                                                Box {
+                                                    size 0.05211 0.04033 0.03625
+                                                }
+                                                ]
+                                            }
+                                            children [
+                                                MRL-HSLKnee {
+                                                }
+                                                DEF DLegLowerR HingeJoint {
+                                                    jointParameters HingeJointParameters {
+                                                        axis 1 0 0
+                                                        anchor -0 -0.12 0
+                                                        position 0
+                                                        dampingConstant 0.002
+                                                        staticFriction 0.025
+                                                    }
+                                                    device [
+                                                        RotationalMotor {
+                                                        name "LegLowerR"
+                                                        acceleration 55
+                                                        maxVelocity 12.26
+                                                        minPosition 0
+                                                        maxPosition 0
+                                                        maxTorque 6
+                                                        }
+                                                        PositionSensor {
+                                                        name "LegLowerRS"
+                                                        }
+                                                    ]
+                                                    endPoint Solid {
+                                                        translation -0 -0.12 0
+                                                        rotation 1 0 0 0
+                                                        physics Physics {
+                                                            density -1
+                                                            mass 0.0703098
+                                                            centerOfMass [
+                                                                0.000592469 -0.0539545 0.00654763
+                                                            ]
+                                                            inertiaMatrix [
+                                                                9.3369608e-05 4.6295534e-05 1.1351516e-04, 9.3567395e-07 2.3992085e-07 -1.2858493e-05
+                                                            ]
+                                                        }
+                                                        boundingObject Transform {
+                                                            translation 0 -0.03034 0.002
+                                                            children [
+                                                                Box {
+                                                                    size 0.05226 0.0865 0.047
+                                                                }
+                                                            ]
+                                                        }
+                                                        children [
+                                                            MRL-HSLLowerLegShape {
+                                                            }
+                                                            DEF DAnkleR HingeJoint {
+                                                                jointParameters HingeJointParameters {
+                                                                    axis -1 0 0
+                                                                    anchor 0 -0.12 0
+                                                                    position 0
+                                                                    dampingConstant 0.002
+                                                                    staticFriction 0.025
+                                                                }
+                                                                device [
+                                                                    RotationalMotor {
+                                                                        name "AnkleR"
+                                                                        acceleration 55
+                                                                        maxVelocity 12.26
+                                                                        minPosition 0
+                                                                        maxPosition 0
+                                                                        maxTorque 6
+                                                                    }
+                                                                    PositionSensor {
+                                                                        name "AnkleRS"
+                                                                    }
+                                                                ]
+                                                                endPoint Solid {
+                                                                    translation 0 -0.12 0
+                                                                    rotation -1 0 0 0
+                                                                    physics Physics {
+                                                                        density -1
+                                                                        mass 0.28476
+                                                                        centerOfMass [
+                                                                        0.03e-03 14.80e-03 -21.19e-03
+                                                                        ]
+                                                                        inertiaMatrix [
+                                                                        269670.10e-09 230599.89e-09 109627.30e-09, -855.80e-09 201.04e-09 -8613.86e-09
+                                                                        ]
+                                                                    }
+                                                                    boundingObject Transform {
+                                                                        translation 0 0.01684 -0.0205
+                                                                        children [
+                                                                        Box {
+                                                                            size 0.0523 0.06166 0.09445
+                                                                        }
+                                                                        ]
+                                                                    }
+                                                                    children [
+                                                                        MRL-HSLRightAnkleMotor {
+                                                                        }
+                                                                        DEF DFootR HingeJoint {
+                                                                        device [
+                                                                            RotationalMotor {
+                                                                            name "FootR"
+                                                                            acceleration 55
+                                                                            maxVelocity 12.26
+                                                                            minPosition 0
+                                                                            maxPosition 0
+                                                                            maxTorque 6
+                                                                            }
+                                                                            PositionSensor {
+                                                                            name "FootRS"
+                                                                            }
+                                                                        ]
+                                                                        jointParameters HingeJointParameters {
+                                                                            axis 0 0 1
+                                                                            position 0
+                                                                            dampingConstant 0.002
+                                                                            staticFriction 0.025
+                                                                        }
+                                                                        endPoint Solid {
+                                                                            rotation 0 0 1 0
+                                                                            children [
+                                                                                DEF RIGHT_FOOT_SLOT Group {
+                                                                                    children IS rightFootSlot
+                                                                                }
+                                                                                MRL-HSLRightFootShape {
+                                                                                }
+                                                                            ]
+                                                                            boundingObject Group {
+                                                                            children [
+                                                                                Transform {
+                                                                                translation -0.00698 -0.04127 0.019
+                                                                                children [
+                                                                                    Box {
+                                                                                    size 0.08091 0.002 0.1507
+                                                                                    }
+                                                                                ]
+                                                                                }
+                                                                                Transform {
+                                                                                translation -0.0075 -0.03427 0.09312
+                                                                                children [
+                                                                                    Box {
+                                                                                    size 0.08091 0.014 0.002
+                                                                                    }
+                                                                                ]
+                                                                                }
+                                                                                Transform {
+                                                                                translation  -0.04094 -0.04927 0.08808
+                                                                                children[
+
+                                                                                    Cylinder {
+                                                                                    height 0.012
+                                                                                    radius 0.00458
+                                                                                    }
+                                                                                ]
+                                                                                }
+                                                                                Transform {
+                                                                                translation  0.02697 -0.04927 0.08808
+                                                                                children[
+
+                                                                                    Cylinder {
+                                                                                    height 0.012
+                                                                                    radius 0.00458
+                                                                                    }
+                                                                                ]
+                                                                                }
+                                                                                Transform {
+                                                                                translation  -0.04094 -0.04927 -0.04893
+                                                                                children[
+
+                                                                                    Cylinder {
+                                                                                    height 0.012
+                                                                                    radius 0.00458
+                                                                                    }
+                                                                                ]
+                                                                                }
+                                                                                Transform {
+                                                                                translation  0.02697 -0.04927 -0.04893
+                                                                                children[
+
+                                                                                    Cylinder {
+                                                                                    height 0.012
+                                                                                    radius 0.00458
+                                                                                    }
+                                                                                ]
+                                                                                }
+                                                                            ]
+                                                                            }
+                                                                            physics Physics {
+                                                                            density -1
+                                                                            mass 0.11704
+                                                                            centerOfMass [
+                                                                                -4.86e-03 -36.85e-03 17.34e-03
+                                                                            ]
+                                                                            inertiaMatrix [
+                                                                                231922.67e-09 267222.01e-09 67627.16e-09, 2606.86e-09 -4307.78e-09 -8763.48e-09
+                                                                            ]
+                                                                            }
+                                                                        }
+                                                                        }
+                                                                    ]
+                                                                }
+                                                            }
+                                                        ]
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            }
+            DEF DShoulderL HingeJoint {
+                jointParameters HingeJointParameters {
+                    axis 1 0 0
+                    anchor 0.10439 0 0
+                    position 0
+                    dampingConstant 0.002
+                    staticFriction 0.025
+                }
+                device [
+                    RotationalMotor {
+                        name "ShoulderL"
+                        acceleration 55
+                        maxVelocity 12.26
+                        minPosition 0
+                        maxPosition 0
+                        maxTorque 2.5
+                    }
+                    PositionSensor {
+                        name "ShoulderLS"
+                    }
+                ]
+                endPoint Solid {
+                    name "ShoulderLSolid"
+                    translation 0.10439 0 0
+                    rotation 1 0 0 0
+                    children [
+                        MRL-HSLLeftShoulderLink {
+                        }
+                        DEF DArmUpperL HingeJoint {
+                            device [
+                                RotationalMotor {
+                                    name "ArmUpperL"
+                                    acceleration 55
+                                    maxVelocity 12.26
+                                    minPosition 0
+                                    maxPosition 0
+                                    maxTorque 2.5
+                                }
+                                PositionSensor {
+                                    name "ArmUpperLS"
+                                }
+                            ]
+                            jointParameters HingeJointParameters {
+                                axis 0 0 1
+                                anchor 0 0.02089 0
+                                position 0
+                                dampingConstant 0.002
+                                staticFriction 0.025
+                            }
+                            endPoint Solid {
+                                translation 0 -0.02089 0
+                                rotation 0 0 -1 0
+                                children [
+                                    MRL-HSLLeftArmUpperShape {
+                                    }
+                                    DEF DArmLowerL HingeJoint {
+                                        device [
+                                            RotationalMotor {
+                                                name "ArmLowerL"
+                                                acceleration 55
+                                                maxVelocity 12.26
+                                                minPosition 0
+                                                maxPosition 0
+                                                maxTorque 2.5
+                                            }
+                                            PositionSensor {
+                                                name "ArmLowerLS"
+                                            }
+                                        ]
+                                        jointParameters HingeJointParameters {
+                                            axis 1 0 0
+                                            anchor 0 -0.08098 0.02089
+                                            position 1.5708
+                                            dampingConstant 0.002
+                                            staticFriction 0.025
+                                        }
+                                        endPoint Solid {
+                                            translation 0 -0.08098 0.02089
+                                            rotation 1 0 0 0
+                                            children [
+                                                DEF LEFT_HAND_SLOT Group {
+                                                    children IS leftHandSlot
+                                                }
+                                                MRL-HSLLeftArmLowerShape {
+                                                }
+                                            ]
+                                            boundingObject Group {
+                                                children [
+                                                    Transform {
+                                                        translation 0.00055 -0.0798 -0.02064
+                                                        children [
+                                                            Box {
+                                                                size 0.02775 0.1028 0.0285
+                                                            }
+                                                        ]
+                                                    }
+                                                    Transform {
+                                                        translation 0.01343 -0.1414 -0.02064
+                                                        children [
+                                                            Box {
+                                                                size 0.002 0.04 0.0285
+                                                            }
+                                                        ]
+                                                    }
+                                                    Transform {
+                                                        translation  0.01343 -0.15159 -0.02064
+                                                        rotation 0 0 1 1.5707963
+                                                        children[
+                                                            Cylinder {
+                                                                height 0.002
+                                                                radius 0.01425
+                                                            }
+                                                        ]
+                                                    }
+                                                    Transform {
+                                                        translation 0 -0.02129 -0.02012
+                                                        children [
+                                                            Box {
+                                                                size 0.04499 0.0142 0.0271
+                                                            }
+                                                        ]
+                                                    }
+                                                    Transform {
+                                                        translation 0 -0.011 -0.01303
+                                                        rotation 1 0 0 0.786445
+                                                        children [
+                                                            Box {
+                                                                size 0.04499 0.03318 0.02595
+                                                            }
+                                                        ]
+                                                    }
+                                                ]
+                                            }
+                                            physics Physics {
+                                                density -1
+                                                mass 0.06081
+                                                centerOfMass [
+                                                    5.10e-03 -58.98e-03 -18.21e-03
+                                                ]
+                                                inertiaMatrix [
+                                                    129393.83e-09 18305.35e-09 130185.96e-09, -10934.721e-09 -804.20e-09 8796.69e-09
+                                                ]
+                                            }
+                                        }
+                                    }
+                                ]
+                                boundingObject Group {
+                                    children [
+                                        Transform {
+                                            translation 0 -0.0256 0
+                                            children [
+                                                Box {
+                                                    size 0.0356 0.07518 0.03566
+                                                }
+                                            ]
+                                        }
+                                        Transform {
+                                            translation 0 -0.08098 0.00805
+                                            children [
+                                                Box {
+                                                    size 0.0356 0.0356 0.05072
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                                physics Physics {
+                                    density -1
+                                    mass 0.164
+                                    centerOfMass [
+                                        0.13e-03 -46.73e-03 4.81e-03
+                                    ]
+                                    inertiaMatrix [
+                                        220947.39e-09 42004.14e-09 209340.46e-09, -744.90e-09 154.89e-09 -23004.99e-09
+                                    ]
+                                }
+                            }
+                        }
+                    ]
+                    boundingObject Transform {
+                        translation -0.00571 -0.013 0
+                        rotation 0 0 1 0.786445
+                        children [
+                        Box {
+                            size 0.02595 0.03354 0.04499
+                        }
+                        ]
+                    }
+                    physics Physics {
+                        density -1
+                        mass 0.02628
+                        centerOfMass [
+                        -15.41e-03 13.03e-03 1.05e-03
+                        ]
+                        inertiaMatrix [
+                        11399.87e-09 12081.69e-09 7582.87e-09, -2587.53e-09 362.97e-09 -297.71e-09
+                        ]
+                    }
+                }
+            }
+            DEF DShoulderR HingeJoint {
+                device [
+                    RotationalMotor {
+                        name "ShoulderR"
+                        acceleration 55
+                        maxVelocity 12.26
+                        minPosition 0
+                        maxPosition 0
+                        maxTorque 2.5
+                    }
+                    PositionSensor {
+                        name "ShoulderRS"
+                    }
+                ]
+                jointParameters HingeJointParameters {
+                    axis -1 0 0
+                    anchor -0.10439 0 0
+                    position 0
+                    dampingConstant 0.002
+                    staticFriction 0.025
+                }
+                endPoint Solid {
+                    name "ShoulderRSolid"
+                    translation -0.10439 0 0
+                    rotation -1 0 0 0
+                    children [
+                        MRL-HSLRightShoulderLink {
+                        }
+                        DEF DArmUpperR HingeJoint {
+                        device [
+                            RotationalMotor {
+                            name "ArmUpperR"
+                            acceleration 55
+                            maxVelocity 12.26
+                            minPosition 0
+                            maxPosition 0
+                            maxTorque 2.5
+                            }
+                            PositionSensor {
+                            name "ArmUpperRS"
+                            }
+                        ]
+                        jointParameters HingeJointParameters {
+                            axis 0 0 1
+                            anchor 0 -0.02064 0
+                            position 0
+                            dampingConstant 0.002
+                            staticFriction 0.025
+                        }
+                        endPoint Solid {
+                            translation 0 -0.02064 0
+                            rotation 0 0 -1 0
+                            children [
+                                MRL-HSLRightArmUpperShape {
+                                }
+                                DEF DArmLowerR HingeJoint {
+                                    device [
+                                    RotationalMotor {
+                                        name "ArmLowerR"
+                                        acceleration 55
+                                        maxVelocity 12.26
+                                        minPosition 0
+                                        maxPosition 0
+                                        maxTorque 2.5
+                                    }
+                                    PositionSensor {
+                                        name "ArmLowerRS"
+                                    }
+                                    ]
+                                    jointParameters HingeJointParameters {
+                                    axis -1 0 0
+                                    anchor 0 -0.08098 0.02089
+                                    position -1.5708
+                                    dampingConstant 0.002
+                                    staticFriction 0.025
+                                    }
+                                    endPoint Solid {
+                                    translation 0 -0.08098 0.02089
+                                    rotation -1 0 0 0
+                                    children [
+                                        DEF RIGHT_HAND_SLOT Group {
+                                        children IS rightHandSlot
+                                        }
+                                        MRL-HSLRightArmLowerShape {
+                                        }
+                                    ]
+                                    boundingObject Group {
+                                        children [
+                                        Transform {
+                                                translation -0.00055 -0.0798 -0.02064
+                                                children [
+                                                Box {
+                                                    size 0.02775 0.1028 0.0285
+                                            }
+
+
+                                            ]
+                                        }
+
+                                        Transform {
+                                            translation -0.01343 -0.16 -0.02064
+                                            children [
+                                            Box {
+                                                size 0.002 0.02038 0.0285
+                                            }
+                                            ]
+                                        }
+                                        Transform {
+                                            translation  -0.01343 -0.15159 -0.02064
+                                            rotation 0 0 1 1.5707963
+                                            children[
+
+                                            Cylinder {
+                                                height 0.002
+                                                radius 0.01425
+                                            }
+                                            ]
+                                        }
+                                        Transform {
+                                            translation 0 -0.02129 -0.02012
+                                                                    children [
+                                            Box {
+                                                size 0.04499 0.0142 0.0271
+                                            }
+                                            ]
+                                        }
+                                        Transform {
+                                            translation 0 -0.011 -0.01303
+                                            rotation 1 0 0 0.786445
+                                            children [
+                                            Box {
+                                                size 0.04499 0.03318 0.02595
+                                            }
+                                            ]
+                                        }
+
+
+                                        ]
+                                    }
+                                    physics Physics {
+                                        density -1
+                                        mass 0.06081
+                                        centerOfMass [
+                                        5.10e-03 -58.98e-03 -18.21e-03
+                                        ]
+                                        inertiaMatrix [
+                                        129393.83e-09 18305.35e-09 130185.96e-09, -10934.721e-09 -804.20e-09 8796.69e-09
+                                        ]
+                                    }
+                                    }
+                                }
+                            ]
+                            boundingObject Group {
+                            children [
+                                Transform {
+                                translation 0 -0.0256 0
+                                children [
+                                    Box {
+                                    size 0.0356 0.07518 0.03566
+                                    }
+                                ]
+                                }
+                                Transform {
+                                translation 0 -0.08098 0.00805
+                                children [
+                                    Box {
+                                    size 0.0356 0.0356 0.05072
+                                    }
+                                ]
+                                }
+                            ]
+                            }
+                            physics Physics {
+                            density -1
+                            mass 0.164
+                            centerOfMass [
+                                -0.13e-03 -46.73e-03 4.81e-03
+                            ]
+                            inertiaMatrix [
+                                220947.39e-09 42004.14e-09 209340.46e-09, 744.90e-09 -154.89e-09 -23004.99e-09
+                            ]
+                            }
+                        }
+                        }
+                    ]
+                    boundingObject Transform {
+                        translation 0.00571 -0.013 0
+                        rotation 0 0 1 -0.786445
+                        children [
+                        Box {
+                            size 0.02595 0.03354 0.04499
+                        }
+                        ]
+                    }
+                    physics Physics {
+                        density -1
+                        mass 0.02628
+                        centerOfMass [
+                        15.41e-03 13.03e-03 1.05e-03
+                        ]
+                        inertiaMatrix [
+                        11399.87e-09 12081.69e-09 7582.87e-09, 2587.53e-09 -362.97e-09 -297.71e-09
+                        ]
+                    }
+                }
+            }
+        ]
+        boundingObject Group {
+            children [
+                Transform {
+                    translation 0 -0.09225 -0.02915
+                    children [
+                        Box {
+                            size 0.059 0.0465 0.11574
+                        }
+                    ]
+                }
+                Transform {
+                    translation 0.0507 -0.09225 -0.03258
+                    children [
+                        Box {
+                            size 0.0402 0.0465 0.06
+                        }
+                    ]
+                }
+                Transform {
+                    translation -0.0507 -0.09225 -0.03258
+                    children [
+                        Box {
+                            size 0.0402 0.0465 0.06
+                        }
+                    ]
+                }
+                Transform {
+                    translation 0 -0.04508 -0.02914
+                    children [
+                        Box {
+                            size 0.146 0.04783 0.11573
+                        }
+                    ]
+                }
+                Transform {
+                    translation 0 0 -0.02914
+                    children [
+                        Box {
+                            size 0.146 0.041 0.09625
+                        }
+                    ]
+                }
+            ]
+        }
+        physics Physics {
+            density -1
+            mass 1.49061
+            centerOfMass [
+                -0.93e-03 -61.35e-03 -25.02e-03
+            ]
+            inertiaMatrix [
+                3215629.60e-09 3369643.23e-09 3838459.83e-09, 7774.19e-09 -22481.78e-09 298948.54e-09
+            ]
+        }
+    }
+}

@@ -59,9 +59,9 @@ def spawn_team(team, color, red_on_right, children):
         port = game.red.ports[n] if color == 'red' else game.blue.ports[n]
         translation = team['players'][number]['halfTimeStartingPose']['translation']
         rotation = team['players'][number]['halfTimeStartingPose']['rotation']
-        if red_on_right:  # symmetry with respect to the central line of the field
-            translation[0] = -translation[0]
-            rotation[3] = math.pi - rotation[3]
+        # if red_on_right:  # symmetry with respect to the central line of the field
+        #     translation[0] = -translation[0]
+        #     rotation[3] = math.pi - rotation[3]
         defname = color.upper() + '_PLAYER_' + number
         string = f'DEF {defname} {model}{{name "{color} player {number}" ' + \
             f'translation {translation[0]} {translation[1]} {translation[2]} ' + \
@@ -376,7 +376,7 @@ try:
             with open(path, 'w') as file:
                 file.write((red_line + blue_line) if game.red.id < game.blue.id else (blue_line + red_line))
             game.controller_process = subprocess.Popen(
-              [os.path.join(JAVA_HOME, 'bin', 'java'), '-jar', 'GameControllerSimulator.jar', '--config', json_file],
+              [os.path.join(JAVA_HOME, 'bin', 'java'), '-jar', 'GameControllerSimulator.jar'],
               cwd=os.path.join(GAME_CONTROLLER_HOME, 'build', 'jar'))
     except KeyError:
         GAME_CONTROLLER_HOME = None
@@ -400,9 +400,9 @@ game.ball_radius = 0.07 if field_size == 'kid' else 0.1125
 game.turf_depth = 0.01
 game.ball_kickoff_translation = [0, 0, game.ball_radius + game.turf_depth]
 ball_size = 1 if field_size == 'kid' else 5
-children.importMFNodeFromString(-1, f'DEF BALL RobocupSoccerBall {{ translation 0 0 {game.ball_kickoff_translation[2]} ' +
+children.importMFNodeFromString(-1, f'DEF BALL RobocupSoccerBall {{ translation -4.13227 -0.0491783 {game.ball_kickoff_translation[2]} ' +
                                 f'size {ball_size} }}')
-game.side_left = game.red.id if bool(random.getrandbits(1)) else game.blue.id  # toss a coin to determine field side
+game.side_left = game.red.id
 game.kickoff = random.randint(1, 2)
 game.state = None
 game.font_size = 0.1

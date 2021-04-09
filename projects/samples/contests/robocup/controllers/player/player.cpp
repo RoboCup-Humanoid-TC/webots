@@ -348,9 +348,9 @@ int main(int argc, char *argv[]) {
                 warn(sensorMeasurements, "Camera \"" + cameraExposure.name() + "\" not found, exposure command ignored.");
             }
 
-            std::string printout;
-            google::protobuf::TextFormat::PrintToString(actuatorRequests, &printout);
-            std::cout << printout << std::endl;
+            // std::string printout;
+            // google::protobuf::TextFormat::PrintToString(actuatorRequests, &printout);
+            // std::cout << printout << std::endl;
 
             for (std::set<webots::Device *>::iterator it = sensors.begin(); it != sensors.end(); ++it) {
               webots::Accelerometer *accelerometer = dynamic_cast<webots::Accelerometer *>(*it);
@@ -493,6 +493,7 @@ int main(int argc, char *argv[]) {
               } else
                 warn(sensorMeasurements, "Device \"" + sensorTimeStep.name() + "\" not found, time step command, ignored.");
             }
+            sensorMeasurements.set_time(robot->getTime());
             const int size = sensorMeasurements.ByteSizeLong();
             if (bandwidth_usage(size, controller_time, basic_time_step) > TEAM_QUOTA) {
               sensorMeasurements.Clear();

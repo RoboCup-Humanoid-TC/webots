@@ -1,0 +1,42 @@
+# VRML_SIM V8.0.0 utf8
+# The Ball's size, mass and color correspond to the soccer ball used in the Robocup SPL
+# You can change the centerOfMass to [0 0 0] to avoid the random rolling effect
+# Author: Yvan Bourquin - www.cyberbotics.com
+# May 12, 2011: Added damping
+
+PROTO MRL-HSLCameraShape [
+]
+{
+    Group {
+        children [
+            Shape {
+                appearance Appearance {
+                    material DEF DCameraMaterial Material {
+                        diffuseColor 0 0 0
+                        specularColor 0.401201 0.401201 0.401201
+                    }
+                }
+                geometry IndexedFaceSet {
+                    coord Coordinate {
+                        point [
+                            0.0012902 0.0006454 -0.0016242, 0.0012902 -0.0018532 -0.0009796
+                            -0.0012902 -0.0018532 -0.0009796, -0.0012902 0.0006454 -0.0016242
+                            0.0030927 0.0010956 0.0001212, 0.0030927 -0.001403 0.0007657
+                            0.0012902 -0.0031483 0.001216, -0.0012901 -0.0031484 0.001216
+                            -0.0030927 -0.001403 0.0007657, -0.0030927 0.0010956 0.0001212
+                            0.0012902 0.002841 -0.0003291, -0.0012902 0.002841 -0.0003291
+                        ]
+                    }
+                    coordIndex [
+                        0 10 4 -1 1 5 6 -1 2 7 8 -1
+                        3 9 11 -1 9 3 2 -1 9 2 8 -1
+                        10 0 3 -1 10 3 11 -1 7 2 1 -1
+                        7 1 6 -1 0 4 5 -1 0 5 1 -1
+                        0 1 2 -1 0 2 3 -1
+                    ]
+                    creaseAngle 0.2
+                }
+            }
+        ]
+    }
+}

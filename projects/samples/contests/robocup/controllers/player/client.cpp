@@ -978,9 +978,10 @@ int main(int argc, char *argv[]) {
 	InitializeVariablesFromConfig();
 	entry();
 	for (;;) {
-		if (!done) {
-            update();
+		if (done) {
+            break;
 		}
+        update();
 	}
 
 	close_socket(fd);

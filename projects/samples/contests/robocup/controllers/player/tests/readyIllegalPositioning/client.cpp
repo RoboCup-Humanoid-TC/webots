@@ -492,7 +492,7 @@ void InitializeVariables() {
 
     iStep0 = -1;
     iStep = 0;
-    t0 = getTime();
+    t0 = getTime()/1000;
 
     ph1Zmp = ph1Single;
     ph2Zmp = ph2Single;
@@ -635,7 +635,7 @@ void stance_reset() { // standup/sitdown/falldown handling
 
     uSupport = uTorso;
 
-    tLastStep = getTime();
+    tLastStep = getTime()/1000;
     
     walkKickRequest = 0;
     current_step_type = 0;
@@ -709,8 +709,8 @@ void startWalk() {
         active = true;
         started = false;
         iStep0 = -1;
-        t0 = getTime();
-        tLastStep = getTime();
+        t0 = getTime()/1000;
+        tLastStep = getTime()/1000;
         initial_step = 2;
     }
 }
@@ -1059,7 +1059,7 @@ void updateGame() {
 }
 
 void updateWalk() {
-    double t = getTime();
+    double t = getTime()/1000;
     if (!active) {
         update_still();
         return;
@@ -1067,7 +1067,7 @@ void updateWalk() {
 
     if (!started) {
         started = true;
-        tLastStep = getTime();
+        tLastStep = getTime()/1000;
     }
     ph0 = ph;
 
@@ -1161,8 +1161,6 @@ void updateWalk() {
             std::vector<double> uLeftModded = pose_global(uLeftTorso, uTorsoModded);
             // std::cout<<"uLeftModded: "<<uLeftModded[0]<<" "<<uLeftModded[1]<<" "<<uLeftModded[2]<<std::endl;
             uSupport = pose_global({supportX, supportY, 0}, uLeftModded);
-            // Body.set_lleg_hardness(hardnessSupport);
-            // Body.set_rleg_hardness(hardnessSwing);
         } else {
             std::vector<double> uRightTorso = pose_relative(uRight1, uTorso1);
             std::vector<double> uTorsoModded = pose_global({supportMod[0], supportMod[1], 0}, uTorso);
@@ -1192,8 +1190,6 @@ void updateWalk() {
             (aYP * exp(tStep / tZmp) - aYN * exp(-tStep / tZmp)) / tZmp +
             m2Y * (1 - cosh((1 - ph2Zmp) * tStep / tZmp));
 
-        // print("xdot0:",dx0,dy0);
-        // print("xdot1:",dx1,dy1);
         std::vector<double> comdot = {dx1, dy1}; // Final COM velocity
     } // End new step
 
@@ -1284,6 +1280,8 @@ void updateWalk() {
     pRLeg[5] = uRight[2];
 
     std::vector<double> qLegs = inverse_legs(pLLeg, pRLeg, pTorso, supportLeg);
+
+    // std::cout<<qLegs[0]<<" "<<qLegs[1]<<" "<<qLegs[2]<<" "<<qLegs[3]<<" "<<qLegs[4]<<" "<<qLegs[5]<<" "<<qLegs[6]<<" "<<qLegs[7]<<" "<<qLegs[8]<<" "<<qLegs[9]<<" "<<qLegs[10]<<" "<<qLegs[11]<<std::endl;
     
     motion_legs(qLegs);
 

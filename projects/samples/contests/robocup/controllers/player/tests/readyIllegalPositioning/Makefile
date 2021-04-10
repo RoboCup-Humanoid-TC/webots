@@ -14,23 +14,24 @@ endif
 
 PROG = client
 SRCS = luatables.o OPKinematics.o Transform.o client.o
-LIBS += `pkg-config --cflags --libs protobuf` -llua5.1 ../../build/$(GOAL)/messages.pb.o
+INCLUDE = -I/usr/include/lua5.2
+LIBS += `pkg-config --cflags --libs protobuf` -llua5.2 ../../build/$(GOAL)/messages.pb.o
 CFLAGS = -c -Wall -fpic
 
 main: luatables.o OPKinematics.o Transform.o client.o
-	$(CXX) -o $(PROG) $(SRCS) $(LIBS)
+	$(CXX) $(INCLUDE) -o $(PROG) $(SRCS) $(LIBS)
 
 luatables.o: luatables.cpp
-	$(CXX) $(CFLAGS) luatables.cpp $(LIBS)
+	$(CXX) $(INCLUDE) $(CFLAGS) luatables.cpp $(LIBS)
 
 OPKinematics.o: OPKinematics.cpp
-	$(CXX) $(CFLAGS) OPKinematics.cpp $(LIBS)
+	$(CXX) $(INCLUDE) $(CFLAGS) OPKinematics.cpp $(LIBS)
 
 Transform.o: Transform.cpp
-	$(CXX) $(CFLAGS) Transform.cpp $(LIBS)
+	$(CXX) $(INCLUDE) $(CFLAGS) Transform.cpp $(LIBS)
 
 client.o: client.cpp
-	$(CXX) $(CFLAGS) client.cpp $(LIBS)
+	$(CXX) $(INCLUDE) $(CFLAGS) client.cpp $(LIBS)
 
 clean:
 	rm -f $(SRCS) $(PROG)

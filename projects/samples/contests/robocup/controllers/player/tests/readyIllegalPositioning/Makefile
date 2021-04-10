@@ -14,7 +14,7 @@ endif
 
 PROG = client
 SRCS = luatables.o OPKinematics.o Transform.o client.o
-LIBS += `pkg-config --cflags --libs protobuf` -llua5.1 ../build/$(GOAL)/messages.pb.o
+LIBS += `pkg-config --cflags --libs protobuf` -llua5.1 ../../build/$(GOAL)/messages.pb.o
 CFLAGS = -c -Wall -fpic
 
 main: luatables.o OPKinematics.o Transform.o client.o

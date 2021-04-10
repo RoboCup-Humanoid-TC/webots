@@ -33,7 +33,7 @@
 
 #include <google/protobuf/io/zero_copy_stream_impl.h>
 #include <google/protobuf/text_format.h>
-#include "../messages.pb.h"
+#include "../../messages.pb.h"
 #if GOOGLE_PROTOBUF_VERSION < 3006001
 #define ByteSizeLong ByteSize
 #endif

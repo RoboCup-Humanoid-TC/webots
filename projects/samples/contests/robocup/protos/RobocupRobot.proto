@@ -15,7 +15,7 @@ PROTO RobocupRobot [
   field MFString                controllerArgs []      # Is `Robot.controllerArgs`.
 ]
 {
-  MRL-HSL {
+  Darwin-opHinge2 {
     translation IS translation
     rotation IS rotation
     name IS name

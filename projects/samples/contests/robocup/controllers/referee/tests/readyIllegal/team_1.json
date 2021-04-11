@@ -5,16 +5,32 @@
       "proto": "RobocupRobot",
       "robotStartCmd": "TODO: docker pulling + starting with optional arguments",
       "halfTimeStartingPose": {
-        "translation": [-3.5, -3.20, 0.459274],
-        "rotation": [0, 0.707107, 0.707107, -3.14]
+        "translation": [-3.5, -3.20, 0.24],
+        "rotation": [0, 0, 1, 1.57]
       },
       "reentryStartingPose": {
-        "translation": [-3.5, -3.11, 0.24],
+        "translation": [-3.5, -3.20, 0.24],
         "rotation": [0, 0, 1, 1.57]
       },
       "shootoutStartingPose": {
         "translation": [2, 0, 0.24],
         "rotation": [0, 0, 1, 1.57]
+      }
+    },
+    "2": {
+      "proto": "RobocupRobot",
+      "robotStartCmd": "TODO: docker pulling + starting with optional arguments",
+      "halfTimeStartingPose": {
+        "translation": [-3.5, 3.20, 0.24],
+        "rotation": [0, 0, 1, -1.57]
+      },
+      "reentryStartingPose": {
+        "translation": [-3.5, 3.20, 0.24],
+        "rotation": [0, 0, 1, -1.57]
+      },
+      "shootoutStartingPose": {
+        "translation": [2, 0, 0.24],
+        "rotation": [0, 0, 1, -1.57]
       }
     }
   }

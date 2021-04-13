@@ -1,7 +1,7 @@
 On this test scenario, there are two teams declared for a normal KidSize match, one team with 4 players, one with 3. Some valid and invalid positions are provided for the
 robots of both teams to test the auto referee behavior:
 
-- Team 1 (RED): 2 robots with invalid position
+- Team 1 (RED): 1 robot with invalid position
   - 1: partially on the border line (#3)
 - Team 2 (BLUE): 2 robots have an invalid position
   - 1: outside of the field with on leg on the left half of the field and the other leg on the right half of the field (#4)
@@ -28,7 +28,7 @@ The following should happen:
    - `Blue 1`:  `-3.5 -2 0.24`
    - `Blue 2`:  `-3.5 2 0.24`
    - `Blue 3`:  `-0.75 -2 0.24`
-   (Of course the positions for the team on the right side should be flipped)
+   - (Of course the positions for the team on the right side should be flipped)
    Then, the simulation is resumed.
 
 7. Time elapses and game state changes to `SET`. (#5)

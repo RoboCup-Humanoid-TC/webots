@@ -47,3 +47,8 @@ Robot {
   supervisor TRUE
   controller "referee"
 }
+Robot {
+  name "robot2"
+  controller "automated_tester"
+  supervisor TRUE
+}

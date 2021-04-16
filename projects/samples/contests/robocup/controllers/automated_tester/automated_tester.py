@@ -1,32 +1,37 @@
-"""automated_tester controller."""
+from controller import Supervisor
+import json
+from types import SimpleNamespace
 
-# You may need to import some classes of the controller module. Ex:
-#  from controller import Robot, Motor, DistanceSensor
-from controller import Robot
+class Action():
+    def __init__(self, time, action_object, action_type, values):
+        self.time = time
+        self.object = action_object
+        self.type = action_type
+        self.values = values
+        self.done = False
 
-# create the Robot instance.
-robot = Robot()
 
-# get the time step of the current world.
+with open('actions.json') as json_file:
+    actions = json.loads(json_file.read(), object_hook=lambda d: SimpleNamespace(**d))
+
+Actions = []
+for item in actions:
+    action = Action(item[0], item[1], item[2], item[3])
+    Actions.append(action)
+
+robot = Supervisor()
+
 timestep = int(robot.getBasicTimeStep())
+simulated_time = 0
 
-# You should insert a getDevice-like function in order to get the
-# instance of a device of the robot. Something like:
-#  motor = robot.getDevice('motorname')
-#  ds = robot.getDevice('dsname')
-#  ds.enable(timestep)
-
-# Main loop:
-# - perform simulation steps until Webots is stopping the controller
 while robot.step(timestep) != -1:
-    # Read the sensors:
-    # Enter here functions to read sensor data, like:
-    #  val = ds.getValue()
+    simulated_time += timestep
+    for action in Actions:
+        if (simulated_time >= action.time) and (not action.done):
+            if (action.type == "POSITION"):
+                robot.getFromDef(action.object).getField('translation').setSFVec3f(action.values)
+            elif(action.type == "FORCE"):
+                robot.getFromDef(action.object).addForce(action.values, False)
+            action.done = True
 
-    # Process sensor data here.
-
-    # Enter here functions to send actuator commands, like:
-    #  motor.setPosition(10.0)
     pass
-
-# Enter here exit cleanup code.

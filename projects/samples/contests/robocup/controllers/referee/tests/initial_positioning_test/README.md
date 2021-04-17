@@ -2,9 +2,9 @@ On this test scenario, there are two teams declared for a normal KidSize match, 
 robots of both teams to test the auto referee behavior:
 
 - Team 1 (RED): 1 robot with invalid position
-  - 1: partially on the border line (#3)
+  - 1: partially on the border line ([#3](https://github.com/RoboCup-Humanoid-TC/webots/issues/3))
 - Team 2 (BLUE): 2 robots have an invalid position
-  - 1: outside of the field with on leg on the left half of the field and the other leg on the right half of the field (#4)
+  - 1: outside of the field with on leg on the left half of the field and the other leg on the right half of the field ([#4](https://github.com/RoboCup-Humanoid-TC/webots/issues/4))
   - 2: on the wrong side
 
 The following should happen:
@@ -12,13 +12,13 @@ The following should happen:
 1. All robots are spawned on their appropriate side, according to the team
    configuration files (just robot `Blue 2` is on the wrong side).
 2. During 2 minutes (real-time not simulated time), game state is `INITIAL` all
-   robots stay static. (#1)
-3. The teams randomly receive a side they play on. (#5)
-4. Kick-off is randomly set to a team. (#5)
-3. AutoRef sends a message to the GameController, status is changed to `READY`. (#1)
+   robots stay static. ([#1](https://github.com/RoboCup-Humanoid-TC/webots/issues/1))
+3. The teams randomly receive a side they play on. ([#5](https://github.com/RoboCup-Humanoid-TC/webots/issues/5))
+4. Kick-off is randomly set to a team. ([#5](https://github.com/RoboCup-Humanoid-TC/webots/issues/5))
+3. AutoRef sends a message to the GameController, status is changed to `READY`. ([#1](https://github.com/RoboCup-Humanoid-TC/webots/issues/1))
 4. Penalties are being called for illegaly positioned robots who are moved to
    appropriate locations.
-5. Robots `Red 2`, `Red 3`, `Red 4`, and `Blue 3` are not penalized and can progress positioning themselves on the field. (#2)
+5. Robots `Red 2`, `Red 3`, `Red 4`, and `Blue 3` are not penalized and can progress positioning themselves on the field. ([#2](https://github.com/RoboCup-Humanoid-TC/webots/issues/2))
 6. The simulation is paused, All the robots are moved into their field. Here is some exact locations as a test (rotations are not altered):
    - `Red 1`:  `-3.5 -2 0.24`
    - `Red 2`:  `-3.5 2 0.24`
@@ -31,8 +31,8 @@ The following should happen:
    - (Of course the positions for the team on the right side should be flipped)
    Then, the simulation is resumed.
 
-7. Time elapses and game state changes to `SET`. (#5)
-8. Time elapses and game state changes to `PLAY`. (#5)
+7. Time elapses and game state changes to `SET`. ([#5](https://github.com/RoboCup-Humanoid-TC/webots/issues/5))
+8. Time elapses and game state changes to `PLAY`. ([#5](https://github.com/RoboCup-Humanoid-TC/webots/issues/5))
 
 The following information should be contained in logs (among others):
 

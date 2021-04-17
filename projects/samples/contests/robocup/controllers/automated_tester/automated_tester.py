@@ -28,10 +28,12 @@ while robot.step(timestep) != -1:
     simulated_time += timestep
     for action in Actions:
         if (simulated_time >= action.time) and (not action.done):
+            node = robot.getFromDef(action.object)
+            node.resetPhysics()
             if (action.type == "POSITION"):
-                robot.getFromDef(action.object).getField('translation').setSFVec3f(action.values)
+                node.getField('translation').setSFVec3f(action.values)
             elif(action.type == "FORCE"):
-                robot.getFromDef(action.object).addForce(action.values, False)
+                node.addForce(action.values, False)
             action.done = True
 
     pass

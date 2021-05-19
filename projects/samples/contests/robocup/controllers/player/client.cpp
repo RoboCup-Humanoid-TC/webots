@@ -81,7 +81,7 @@ int main(int argc, char *argv[]) {
       return 0;
     }
     const char *n = strchr(argv[1], ':');
-    if (n > 0) {
+    if (n != nullptr) {
       port = atoi(n + 1);
       strncpy(host, argv[1], sizeof(host) - 1);
       host[n - argv[1]] = '\0';

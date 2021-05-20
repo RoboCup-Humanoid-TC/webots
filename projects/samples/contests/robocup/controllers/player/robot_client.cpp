@@ -17,6 +17,7 @@
 #include <google/protobuf/text_format.h>
 #include <cmath>
 #include <stdexcept>
+#include <iostream>
 
 float RobotClient::history_period = 5;
 int RobotClient::max_answer_size = 1920 * 1080 * 3 + 1000;  // Adding some margin for other data than image

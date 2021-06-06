@@ -1,46 +1,119 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-RUN_TESTS=true
-if [ $# -gt 0 ]
-then
-    if [ $1 == "--print-only" ]
-    then
-        RUN_TESTS=false
+set -Eeuo pipefail
+
+# Usage:
+# --print-only: Only print the cached results
+# --lazy: Only run tests that are not cached or if they are cached are not successful
+
+PRINT_ONLY=false
+LAZY=false
+if [ $# -gt 0 ]; then
+    if [ "$1" == "--print-only" ]; then
+        PRINT_ONLY=true
+    elif [ "$1" == "--lazy" ]; then
+        LAZY=true
     else
-        echo "Usage: $0 [--print-only]"
-        exit -1
+        >&2 echo "Usage: $0 [--print-only] [--lazy]"
+        exit 1
     fi
 fi
 
-TEST_FILES=$(find . -name "test_scenario.json" | sort -h)
+script_dir=$(dirname "$(realpath -s "$0")")
+cd "$script_dir" || exit 1
+
+readarray -d '' TEST_FILES < <(find . -name "test_scenario.json" -print0 | sort --zero-terminated --human-numeric-sort)
 
 TOT_SUCCESS=0
 TOT_TESTS=0
+NTH_TEST=0
 
-for test_file in ${TEST_FILES[@]}
+COLOR_RED='\e[0;31m'
+COLOR_GREEN='\e[0;32m'
+COLOR_RESET='\e[0m'
+
+parse_log_file() {
+    local test_log=$1
+    local -n nb_success_=$2
+    local -n nb_tests_=$3
+
+    local result_line=$(awk '/TEST RESULTS/ { print $3 }' "$test_log")
+    nb_success_=$(echo "$result_line" | awk 'BEGIN { FS = "/" } ; { print $1 }')
+    nb_tests_=$(echo "$result_line" | awk 'BEGIN { FS = "/" } ; { print $2 }')
+}
+
+is_log_file_sane() {
+    local test_log=$1
+    local nb_success
+    local nb_tests
+    parse_log_file "$test_log" nb_success nb_tests
+
+    [[ -f "$test_log" && "$nb_success" && "$nb_tests" ]]
+}
+
+should_run_tests() {
+    local test_log=$1
+
+    if [ $PRINT_ONLY = true ]; then
+        # don't run the test
+        return 1
+    fi
+
+    if [ $LAZY = true ]; then
+      if ! is_log_file_sane "$test_log"; then
+          # run the test
+          return 0
+      else
+          parse_log_file "$test_log" nb_success nb_tests
+
+          # run the test if and only if not all tests were successful
+          [ "$nb_success" -lt "$nb_tests" ]
+          return
+      fi
+    fi
+
+    # run the test, if no command line option is set
+    return 0
+}
+
+for test_file in "${TEST_FILES[@]}"
 do
-    folder=$(dirname ${test_file})
-    test_log="${folder}/test.log"
-    referee_log="${folder}/referee.log"
-    if [ $RUN_TESTS = true ]
-    then
-        ./launch_test.sh ${folder} &> ${test_log}
-        cp ../log.txt ${referee_log}
-    fi
-    RESULT_LINE=$(awk '/TEST RESULTS/ { print $3 }' ${test_log})
-    NB_SUCCESS=$(echo $RESULT_LINE | awk 'BEGIN { FS = "/" } ; { print $1 }')
-    NB_TESTS=$(echo $RESULT_LINE | awk 'BEGIN { FS = "/" } ; { print $2 }')
-    RESULT="PASS"
-    if [ $NB_SUCCESS -lt $NB_TESTS ]
-    then
-        RESULT="FAIL"
-    fi
-    printf "%s %2d/%2d %s\n" $RESULT $NB_SUCCESS $NB_TESTS $folder
+    ((NTH_TEST+=1))
 
-    ((TOT_SUCCESS+=NB_SUCCESS))
-    ((TOT_TESTS+=NB_TESTS))
+    folder=$(dirname "$test_file")
+    test_log=$folder/test.log
+    referee_log=$folder/referee.log
+    msg_prefix="[$NTH_TEST/${#TEST_FILES[@]}] $folder"
+
+    if should_run_tests "$test_log"; then
+        echo "$msg_prefix ..."
+        # Sometimes tests hand indefinitely, so use a time out
+        if ! time timeout --foreground 420s ./launch_test.sh "$folder" &> "$test_log"; then
+            printf "$COLOR_RED%s %s %s$COLOR_RESET\n" "$msg_prefix" FAIL "test timeouted"
+            pkill webots
+            pkill -f "GameControllerSimulator.jar"
+            continue
+        fi
+        cp ../log.txt "$referee_log"
+    fi
+
+    declare nb_success
+    declare nb_tests
+    parse_log_file "$test_log" nb_success nb_tests
+
+    if ! is_log_file_sane "$test_log"; then
+        printf "$COLOR_RED%s %s %s$COLOR_RESET\n" "$msg_prefix" FAIL "log is not usable"
+        continue
+    elif [ "$nb_success" -lt "$nb_tests" ]; then
+        printf "$COLOR_RED%s %s %2d/%2d$COLOR_RESET\n" "$msg_prefix" FAIL "$nb_success" "$nb_tests"
+    else
+        printf "$COLOR_GREEN%s %s %2d/%2d$COLOR_RESET\n" "$msg_prefix" PASS "$nb_success" "$nb_tests"
+    fi
+
+    ((TOT_SUCCESS+=nb_success))
+    ((TOT_TESTS+=nb_tests))
 done
 
-echo "=========================="
-echo $(printf "# GLOBAL RESULTS: %3d/%3d #" $TOT_SUCCESS $TOT_TESTS)
-echo "=========================="
+echo "==========================="
+printf "# GLOBAL RESULTS: %3d/%3d #\n" "$TOT_SUCCESS" "$TOT_TESTS"
+echo "==========================="

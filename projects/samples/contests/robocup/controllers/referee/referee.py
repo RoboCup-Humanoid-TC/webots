@@ -1724,8 +1724,8 @@ def check_penalty_goal_line():
         if game.in_play is not None or ignore_player:
             player['invalidGoalkeeperStart'] = None
             continue
-        # If fully inside or fully outside, the robot is out of field
-        if player['outside_field'] or player['inside_field'] or abs(player['position'][1]) > GOAL_WIDTH:
+        # If fully inside field, the robot cannot be in its own goal
+        if player['inside_field'] or abs(player['position'][1]) > GOAL_WIDTH:
             if player['invalidGoalkeeperStart'] is None:
                 player['invalidGoalkeeperStart'] = time_count
             elif time_count - player['invalidGoalkeeperStart'] > INVALID_GOALKEEPER_TIMEOUT * 1000:

@@ -239,6 +239,7 @@ def spawn_team(team, red_on_right, children):
         string += '] }}'
         children.importMFNodeFromString(-1, string)
         player['robot'] = supervisor.getFromDef(defname)
+        player['position'] = player['robot'].getCenterOfMass()
         player['robot'].enableContactPointsTracking(time_step, True)
         # player['robot'].enablePoseTracking(time_step)
         # pose = player['robot'].getPose()
@@ -304,12 +305,6 @@ def update_score_display():
         offset = 21 if len(red_score) == 2 else 22
         score = ' ' * offset + red_score + '-' + blue_score
     supervisor.setLabel(5, score, 0, 0, game.font_size, BLACK_COLOR, 0.2, game.font)
-
-
-def update_time_count_display():
-    s = str(time_count)
-    s = ' ' * int(24 - (len(s) / 2)) + s
-    supervisor.setLabel(9, s, 0, 0.0465, game.font_size, BLACK_COLOR, 0.2, game.font)
 
 
 def update_team_details_display(team, side, strings):
@@ -948,9 +943,9 @@ def update_team_contacts(team):
             player['asleep'] = True
             continue
         player['asleep'] = False
+        player['position'] = robot.getCenterOfMass()
         # pose = robot.getPose()
         # player['position'] = [pose[3], pose[7], pose[11]]
-        player['position'] = [0, 0, 0]
         # if less then 3 contact points, the contacts do not include contacts with the ground, so don't update the following
         # value based on ground collisions
         if n >= 3:
@@ -2492,9 +2487,9 @@ try:
         stabilize_robots()
         send_play_state_after_penalties = False
         previous_position = copy.deepcopy(game.ball_position)
+        game.ball_position = game.ball_translation.getSFVec3f()
         # ball_pose = game.ball.getPose()
         # game.ball_position = [ball_pose[3], ball_pose[7], ball_pose[11]]
-        game.ball_position = [0, 0, 0]
         if game.ball_position != previous_position:
             game.ball_last_move = time_count
         update_contacts()  # check for collisions with the ground and ball
@@ -2806,7 +2801,6 @@ try:
                 send_play_state_after_penalties = False
 
         time_count += time_step
-        update_time_count_display()
 
         if game.minimum_real_time_factor != 0:
             # slow down the simulation to guarantee a miminum amount of real time between each step

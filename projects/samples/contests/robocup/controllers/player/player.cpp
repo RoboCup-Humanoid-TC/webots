@@ -389,9 +389,10 @@ public:
     return motor_command;
   }
 
-  void stopMotors() const {
+  void stopMotors() {
     for (size_t i = 0; i != motor_commands.size(); i++) {
       webots::Motor *motor = motor_commands[i]->motor;
+      velocities_to_resume[motor] = motor->getVelocity();
       motor->setVelocity(0);
       if (motor->getType() == webots::Motor::ROTATIONAL)
         motor->setTorque(0);
@@ -402,6 +403,7 @@ public:
   void resumeMotors() {
     for (size_t i = 0; i != motor_commands.size(); i++) {
       webots::Motor *motor = motor_commands[i]->motor;
+      motor->setVelocity(velocities_to_resume[motor]);
       if (!isnan(motor_commands[i]->position))
         motor->setPosition(motor_commands[i]->position);
       if (!isnan(motor_commands[i]->velocity))
@@ -783,6 +785,8 @@ private:
   std::vector<MotorCommand *> motor_commands;
   uint32_t controller_time;
   std::map<webots::Device *, uint32_t> start_sensoring_time;
+  std::map<webots::Motor *, double> velocities_to_resume;
+  
   char *recv_buffer;
   int recv_index;
   int recv_size;

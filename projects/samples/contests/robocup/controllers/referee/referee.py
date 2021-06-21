@@ -240,7 +240,7 @@ def spawn_team(team, red_on_right, children):
         children.importMFNodeFromString(-1, string)
         player['robot'] = supervisor.getFromDef(defname)
         player['position'] = player['robot'].getCenterOfMass()
-        player['robot'].enableContactPointsTracking(time_step, True)
+        # player['robot'].enableContactPointsTracking(time_step, True)
         # player['robot'].enablePoseTracking(time_step)
         # pose = player['robot'].getPose()
         # player['position'] = [pose[3], pose[7], pose[11]]
@@ -2362,7 +2362,7 @@ game.penalty_shootout_time_to_reach_goal_area = [None, None, None, None, None, N
 game.penalty_shootout_time_to_touch_ball = [None, None, None, None, None, None, None, None, None, None]
 game.ball = supervisor.getFromDef('BALL')
 # game.ball.enablePoseTracking(time_step)
-game.ball.enableContactPointsTracking(time_step)
+# game.ball.enableContactPointsTracking(time_step)
 game.ball_translation = game.ball.getField('translation')
 game.ball_radius = 0.07 if field_size == 'kid' else 0.1125
 game.ball_kick_translation = [0, 0, game.ball_radius + game.field.turf_depth]  # initial position of ball before kick

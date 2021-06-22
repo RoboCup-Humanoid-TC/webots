@@ -424,8 +424,7 @@ def team_index(color):
     id = game.red.id if color == 'red' else game.blue.id
     index = 0 if game.state.teams[0].team_number == id else 1
     if game.state.teams[index].team_number != id:
-        info(f'Wrong team number set in team_index(): {id} != {game.state.teams[index].team_number} index={index}')
-        info(f'Wrong team number set in team_index(): {game.state.teams[0].team_number} index=0')
+        raise RuntimeError(f'Wrong team number set in team_index(): {id} != {game.state.teams[index].team_number}')
     return index
 
 

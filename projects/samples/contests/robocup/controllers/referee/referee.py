@@ -428,19 +428,18 @@ def team_index(color):
     return index
 
 
-def check_team(color):
+def check_team(color):  # check the consitency of the GameController messages (useful to detect a wrong GameController)
     c = [game.state.teams[0].team_color.lower(), game.state.teams[1].team_color.lower()]
     if c[0] == color:
         index = 0
     elif c[1] == color:
         index = 1
     else:
-        info(f'ERROR: color {color} not found in game.state: {c[0]} {c[1]}')
-        quit()
+        raise RuntimeError(f'"{color}" team color not found in game.state: "{c[0]}" and "{c[1]}"')
     id = game.red.id if c[index] == 'red' else game.blue.id
-    if id != game.state.teams[index].team_number:
-        info(f'ERROR: wrong team_number {index}: {id} != {game.state.teams[index].team_number} (color = {c[index]})\n')
-        quit()
+    n = game.state.teams[index].team_number
+    if id != n:
+        raise RuntimeError(f'Wrong team number {index}: {id} != {n} (color = {c[index]})\n')
 
 
 def game_controller_receive():

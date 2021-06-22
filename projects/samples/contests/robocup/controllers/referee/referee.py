@@ -424,21 +424,38 @@ def team_index(color):
     id = game.red.id if color == 'red' else game.blue.id
     index = 0 if game.state.teams[0].team_number == id else 1
     if game.state.teams[index].team_number != id:
-        raise RuntimeError(f'Wrong team number set in team_index(): {id} != {game.state.teams[index].team_number}')
+        info(f'Wrong team number set in team_index(): {id} != {game.state.teams[index].team_number} index={index}')
+        info(f'Wrong team number set in team_index(): {game.state.teams[0].team_number} index=0')
     return index
+
+
+def check_team(color):
+    c = [game.state.teams[0].team_color.lower(), game.state.teams[1].team_color.lower()]
+    if c[0] == color:
+        index = 0
+    elif c[1] == color:
+        index = 1
+    else:
+        info(f'ERROR: color {color} not found in game.state: {c[0]} {c[1]}')
+        quit()
+    id = game.red.id if c[index] == 'red' else game.blue.id
+    if id != game.state.teams[index].team_number:
+        info(f'ERROR: wrong team_number {index}: {id} != {game.state.teams[index].team_number} (color = {c[index]})\n')
+        quit()
 
 
 def game_controller_receive():
     data = None
     ip = None
     while True:
-        if game_controller_udp_filter and ip and ip not in game_controller_receive.others:
-            game_controller_receive.others.append(ip)
-            warning(f'Ignoring UDP packets from {ip} not matching GAME_CONTROLLER_UDP_FILTER={game_controller_udp_filter}.')
         try:
             data, peer = game.udp.recvfrom(GameState.sizeof())
             ip, port = peer
-            if game_controller_udp_filter is None or game_controller_udp_filter == ip:
+            if game_controller_udp_filter and game_controller_udp_filter != ip and ip not in game_controller_receive.others:
+                warning(f'Ignoring UDP packets from {ip} not matching GAME_CONTROLLER_UDP_FILTER={game_controller_udp_filter}.')
+                game_controller_receive.others.append(ip)
+                continue
+            elif game_controller_udp_filter is None or game_controller_udp_filter == ip:
                 break
             else:
                 continue
@@ -465,6 +482,8 @@ def game_controller_receive():
         previous_blue_score = 0
 
     game.state = GameState.parse(data)
+    check_team('red')
+    check_team('blue')
 
     if previous_state != game.state.game_state:
         info(f'New state received from GameController: {game.state.game_state}.')

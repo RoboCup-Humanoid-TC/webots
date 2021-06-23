@@ -1139,22 +1139,7 @@ def update_team_penalized(team):
             continue
         p = game.state.teams[index].players[int(number) - 1]
         if p.number_of_red_cards > 0:
-            # sending red card robot far away from the field
-            t = copy.deepcopy(player['reentryStartingPose']['translation'])
-            t[0] = 50
-            t[1] = (10 + int(number)) * (1 if color == 'red' else -1)
-            reset_player(color, number, 'reentryStartingPose', t)
-            customData = player['robot'].getField('customData')
-            customData.setSFString('red_card')  # disable all devices of the robot
             player['penalized'] = 'red_card'
-            # FIXME: unfortunately, player['robot'].remove() crashes webots
-            # Once this is fixed, we should remove the robot, which seems to be a better solution
-            # than moving it away from the field
-            player['robot'] = None
-            info(f'Sending {color} player {number} to {t}. (team_index: {index})')
-            if 'stabilize' in player:
-                del player['stabilize']
-            player['outside_field'] = True
         elif 'enable_actuators_at' in player:
             timing_ok = time_count >= player['enable_actuators_at']
             penalty_ok = 'penalized' not in player or p.penalty == 0
@@ -1170,6 +1155,20 @@ def update_team_penalized(team):
 def update_penalized():
     update_team_penalized(red_team)
     update_team_penalized(blue_team)
+
+
+def remove_team_red_card_player(team):
+    for number in team['players']:
+        player = team['players'][number]
+        if player['robot'] is None or not player_has_red_card(player):
+            continue
+        player['robot'].remove()
+        player['robot'] = None
+
+
+def remove_red_card_players():
+    remove_team_red_card_player(red_team)
+    remove_team_red_card_player(blue_team)
 
 
 def already_penalized(player):
@@ -1569,11 +1568,7 @@ def check_team_penalized_in_field(team):
     penalty = False
     for number in team['players']:
         player = team['players'][number]
-        if 'penalized' not in player:
-            continue  # skip non penalized players
-        if player['penalized'] == 'red_card':
-            continue  # skip red card players
-        if player['outside_field']:
+        if player['robot'] is None or 'penalized' not in player or player['outside_field']:
             continue
         player['yellow_card'] = True
         info(f'Penalized {color} player {number} re-entered the field...')
@@ -2506,6 +2501,7 @@ if hasattr(game, 'record_simulation'):
 try:
     previous_real_time = time.time()
     while supervisor.step(time_step) != -1 and not game.over:
+        remove_red_card_players()
         if hasattr(game, 'max_duration') and (time.time() - log.real_time) > game.max_duration:
             info(f'Interrupting game automatically after {game.max_duration} seconds')
             break

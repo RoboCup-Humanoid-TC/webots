@@ -254,6 +254,10 @@ def spawn_team(team, red_on_right, children):
         children.importMFNodeFromString(-1, string)
         player['robot'] = supervisor.getFromDef(defname)
         player['position'] = player['robot'].getCenterOfMass()
+        # player['robot'].enableContactPointsTracking(time_step, True)
+        # player['robot'].enablePoseTracking(time_step)
+        # pose = player['robot'].getPose()
+        # player['position'] = [pose[3], pose[7], pose[11]]
         info(f'Spawned {defname} {model} on port {port} at halfTimeStartingPose: translation (' +
              f'{halfTimeStartingTranslation[0]} {halfTimeStartingTranslation[1]} {halfTimeStartingTranslation[2]}), ' +
              f'rotation ({halfTimeStartingRotation[0]} {halfTimeStartingRotation[1]} {halfTimeStartingRotation[2]} ' +
@@ -957,13 +961,15 @@ def update_team_contacts(team):
             for i in range(l2):
                 sum[i] += v[i]
         player['velocity'] = [s / l1 for s in sum]
-        n = robot.getNumberOfContactPoints(True)
-        player['contact_points'] = []
+        contact_points = robot.getContactPoints(True)
+        n = len(contact_points)
         if n == 0:  # robot is asleep
             player['asleep'] = True
             continue
         player['asleep'] = False
         player['position'] = robot.getCenterOfMass()
+        # pose = robot.getPose()
+        # player['position'] = [pose[3], pose[7], pose[11]]
         # if less then 3 contact points, the contacts do not include contacts with the ground, so don't update the following
         # value based on ground collisions
         if n >= 3:
@@ -979,9 +985,10 @@ def update_team_contacts(team):
         else:
             outside_turf = False
             fallen = True
-        for i in range(n):
-            point = robot.getContactPoint(i)
-            node = robot.getContactPointNode(i)
+        player['contact_points'] = []
+        for contact_point in contact_points:
+            point = contact_point.point
+            node = supervisor.getFromId(contact_point.node_id)
             if not node:
                 continue
             name_field = node.getField('name')
@@ -1070,12 +1077,14 @@ def update_team_contacts(team):
 
 def update_ball_contacts():
     game.ball.contact_points = []
-    for i in range(game.ball.getNumberOfContactPoints()):
-        point = game.ball.getContactPoint(i)
-        if point[2] <= game.field.turf_depth:  # contact with the ground
-            continue
-        game.ball.contact_points.append(point)
-        break
+    contact_points = game.ball.getContactPoints()
+    if contact_points:
+        for contact_point in contact_points:
+            point = contact_point.point
+            if point[2] <= game.field.turf_depth:  # contact with the ground
+                continue
+            game.ball.contact_points.append(point)
+            break
 
 
 def update_contacts():
@@ -2406,9 +2415,11 @@ game.penalty_shootout_time_to_score = [None, None, None, None, None, None, None,
 game.penalty_shootout_time_to_reach_goal_area = [None, None, None, None, None, None, None, None, None, None]
 game.penalty_shootout_time_to_touch_ball = [None, None, None, None, None, None, None, None, None, None]
 game.ball = supervisor.getFromDef('BALL')
+# game.ball.enablePoseTracking(time_step)
+# game.ball.enableContactPointsTracking(time_step)
+game.ball_translation = game.ball.getField('translation')
 game.ball_radius = 0.07 if field_size == 'kid' else 0.1125
 game.ball_kick_translation = [0, 0, game.ball_radius + game.field.turf_depth]  # initial position of ball before kick
-game.ball_translation = supervisor.getFromDef('BALL').getField('translation')
 game.ball_exit_translation = None
 reset_ball_touched()
 game.ball_last_touch_time = 0
@@ -2532,6 +2543,8 @@ try:
         send_play_state_after_penalties = False
         previous_position = copy.deepcopy(game.ball_position)
         game.ball_position = game.ball_translation.getSFVec3f()
+        # ball_pose = game.ball.getPose()
+        # game.ball_position = [ball_pose[3], ball_pose[7], ball_pose[11]]
         if game.ball_position != previous_position:
             game.ball_last_move = time_count
         update_contacts()  # check for collisions with the ground and ball

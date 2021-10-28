@@ -9,6 +9,8 @@ PROTO RobocupSoccerField [
   field SFString                    name        "soccer_field"
   field SFString{"adult", "kid"}    size        "adult"
   field SFBool                      turfPhysics TRUE
+  field SFFloat                     terrain_noise_intensity_kid 0.2
+  field SFFloat                     terrain_noise_intensity_adult 0.5
 ]
 {
 
@@ -32,6 +34,7 @@ PROTO RobocupSoccerField [
       I = 1
       J = 2
       K = 5
+      TERRAIN_NOISE_INTENSITY = fields.terrain_noise_intensity_kid.value
     else
       -- AdultSize dimensions
       A = 14
@@ -45,6 +48,7 @@ PROTO RobocupSoccerField [
       I = 1
       J = 3
       K = 6
+      TERRAIN_NOISE_INTENSITY = fields.terrain_noise_intensity_adult.value
     end
     if fields.turfPhysics.value then
       DEPTH = 0.01
@@ -258,14 +262,19 @@ PROTO RobocupSoccerField [
     locked TRUE
     children [
       %{ if fields.turfPhysics.value then }%
-      DEF BLADES Solid {
+      DEF BLADES  UnevenTerrain {
         contactMaterial "grass"
-        translation 0 0 0.01
-        rotation 1 0 0 1.5707996938995747
-        boundingObject Plane {
-          size %{= 2 * I + A }% %{= 2 * I + B }%
-        }
-      }
+        translation 0 0 %{=-TERRAIN_NOISE_INTENSITY/2}%
+        rotation 1 0 0 1.571
+        size %{= 2 * I + A }%  %{=TERRAIN_NOISE_INTENSITY}%  %{= 2 * I + B }%
+        xDimension     50
+        zDimension     50
+        randomSeed     1
+        flatCenter     FALSE
+        flatBounds     FALSE
+        perlinNOctaves 8
+        appearance PBRAppearance { transparency 1.0 }
+       }
       %{ end }%
       DEF GRASS Shape {
         appearance Grass {

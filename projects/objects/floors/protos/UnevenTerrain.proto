@@ -16,6 +16,7 @@ PROTO UnevenTerrain [
   field SFBool     flatCenter     FALSE                                                              # Defines whether the center of the terrain should be flat.
   field SFBool     flatBounds     FALSE                                                              # Defines whether the bounds of the terrain should be flat.
   field SFInt32    perlinNOctaves 3                                                                  # Defines the number of octaves of the perlin noise.
+  field SFString   contactMaterial "default"
 
   # Deprecated in Webots R2019a
   deprecatedField MFString   texture        "textures/sand.jpg"
@@ -98,6 +99,7 @@ PROTO UnevenTerrain [
   Solid {
     translation IS translation
     rotation IS rotation
+    contactMaterial IS contactMaterial
     children [
       DEF UNEVEN_TERRAIN_ELEVATION_GRID Transform {
         translation %{= - size.x / 2 }% 0 %{= - size.z / 2 }%

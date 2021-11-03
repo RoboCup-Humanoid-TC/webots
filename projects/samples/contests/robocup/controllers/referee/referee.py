@@ -24,6 +24,8 @@ import time
 import traceback
 import yaml
 
+from transitions import Machine
+
 from scipy.spatial import ConvexHull
 
 from types import SimpleNamespace
@@ -2008,6 +2010,14 @@ class Referee:
                 self.clean_exit()
 
     def main_loop(self):
+        states = ['initial', 'set', 'ready', 'playing', 'finished']
+        machine = Machine(states=states, initial='initial')
+        machine.add_transition('init_done', 'initial', 'ready')
+        machine.add_transition('ready_done', 'ready', 'set')
+        machine.add_transition('set_done', 'set', 'playing')
+        machine.add_transition('halftime_finished', 'playing', 'finished')
+        machine.add_transition('move_to_second_half', 'finished', 'ready', [self.game.is_second_half])
+
         previous_real_time = time.time()
         while self.supervisor.step(self.time_step) != -1 and not self.game.over:
             if hasattr(self.game, 'max_duration') and (time.time() - self.blackboard.start_real_time) > self.game.max_duration:

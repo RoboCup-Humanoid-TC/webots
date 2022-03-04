@@ -1409,6 +1409,20 @@ class Referee:
             self.logger.info(f"Reset interruption_countdown to {self.game.interruption_countdown}")
             self.game_controller_send(f'{self.game.interruption}:{self.game.interruption_team}:RETAKE')
 
+    def game_interruption_ball_handling(self, team):
+        """
+        Applies the associated actions for when a robot does ball handling duing an interruption
+
+        1. Ball Handling is performed by any team during interruption -> retake
+        """
+        # TODO may result in endless loop if team always tries to pick up the ball
+        self.game.in_play = None
+        self.game.ball_set_kick = True
+        self.game.interruption_countdown = self.config.SIMULATED_TIME_INTERRUPTION_PHASE_0
+        self.logger.info(f"Ball handling during interruption by team {team}: {GAME_INTERRUPTIONS[self.game.interruption]}")
+        self.logger.info(f"Reset interruption_countdown to {self.game.interruption_countdown}")
+        self.game_controller_send(f'{self.game.interruption}:{self.game.interruption_team}:RETAKE')
+
     def get_first_available_spot(self, team_color, number, reentry_pos):
         """Return the first available spot to enter on one side of the field given the reentry_pos"""
         if not self.is_other_robot_near(team_color, number, reentry_pos, self.field.robot_radius):
@@ -2461,7 +2475,10 @@ class Referee:
                             self.interruption('FREEKICK', ball_holding, self.game.ball_position)
                 ball_handling = self.check_ball_handling()  # return team id if ball handling is performed by goalkeeper
                 if ball_handling and not self.game.penalty_shootout:
-                    self.interruption('FREEKICK', ball_handling, self.game.ball_position, is_goalkeeper_ball_manipulation=True) # TODO check logic here 
+                    if self.is_game_interruption():
+                        self.game_interruption_ball_handling(ball_handling)
+                    else:
+                        self.interruption('FREEKICK', ball_handling, self.game.ball_position, is_goalkeeper_ball_manipulation=True) # TODO check logic here 
             self.check_penalized_in_field()                    # check for penalized robots inside the field
             if self.game.state.game_state != 'STATE_INITIAL':  # send penalties if needed
                 self.send_penalties()

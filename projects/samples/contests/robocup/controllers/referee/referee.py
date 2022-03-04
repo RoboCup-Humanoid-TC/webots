@@ -918,7 +918,10 @@ class Referee:
             self.send_penalty(player, 'PHYSICAL_CONTACT', 'forceful contact foul')
         else:
             offence_location = team.players[number]['position']
-            self.interruption('FREEKICK', freekick_team_id, offence_location)
+            if self.is_game_interruption():
+                self.game_interruption_forceful_contact(team, player)
+            else:
+                self.interruption('FREEKICK', freekick_team_id, offence_location)
 
     def goalkeeper_inside_own_goal_area(self, team, number):
         if self.is_goalkeeper(team, number):
@@ -1386,6 +1389,23 @@ class Referee:
             self.game.ball_set_kick = True
             self.game.interruption_countdown = self.config.SIMULATED_TIME_INTERRUPTION_PHASE_0
             self.logger.info(f"Ball holding by opponent team, retaking {GAME_INTERRUPTIONS[self.game.interruption]}")
+            self.logger.info(f"Reset interruption_countdown to {self.game.interruption_countdown}")
+            self.game_controller_send(f'{self.game.interruption}:{self.game.interruption_team}:RETAKE')
+
+    def game_interruption_forceful_contact(self, team, player):
+        """
+        Applies the associated actions for when a robot does a forceful contact duing an interruption
+
+        1. If opponent commits commits, RETAKE is sent, 30 second removal penalty for opponent
+        2. If team with game_interruption does forceful game interruption continues
+        """
+        opponent = team != self.game.interruption_team
+        if opponent:
+            self.send_penalty(player, 'PHYSICAL_CONTACT', 'forceful contact foul')
+            self.game.in_play = None
+            self.game.ball_set_kick = True
+            self.game.interruption_countdown = self.config.SIMULATED_TIME_INTERRUPTION_PHASE_0
+            self.logger.info(f"Forceful contact by opponent team during interruption, retaking {GAME_INTERRUPTIONS[self.game.interruption]}")
             self.logger.info(f"Reset interruption_countdown to {self.game.interruption_countdown}")
             self.game_controller_send(f'{self.game.interruption}:{self.game.interruption_team}:RETAKE')
 

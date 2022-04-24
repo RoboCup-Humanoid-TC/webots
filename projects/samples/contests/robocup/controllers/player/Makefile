@@ -34,6 +34,8 @@ else
 GOAL := $(MAKECMDGOALS)
 endif
 
+LIBRARIES += -lturbojpeg
+
 defaut: release
 
 release debug profile: clients

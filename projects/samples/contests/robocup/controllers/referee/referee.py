@@ -736,6 +736,7 @@ class Referee:
                             self.game_interruption_touched(team, number)
                         continue
                     # the robot touched something else than the ball or the ground
+                    # There are only two possibilities, it touched another robot or it touched one of the goals
                     player['contact_points'].append(point)  # this list will be checked later for robot-robot collisions
                     continue
                 if distance2(point, [0, 0]) < self.field.circle_radius:
@@ -804,8 +805,11 @@ class Referee:
 
     def update_team_robot_contacts(self, team):
         for number, player in team.players.items():
+            is_touching_goal = False
             contact_points = player['contact_points']
-            if len(contact_points) == 0:
+            # If a robot is not asleep, even if it has no contact points above ground, we want to update the
+            # is_touching_ball property.
+            if player['asleep']:
                 continue
             opponent_team = self.red_team if team == self.blue_team else self.blue_team
             for point in contact_points:
@@ -823,6 +827,14 @@ class Referee:
                         self.logger.info(f'{self.sim_time.get_ms()}: contact between {team.color} player {number} and '
                                          f'{opponent_team.color} player {opponent_number}.')
                     fcm.set_contact(red_number, blue_number, self.sim_time.get_ms())
+                else:
+                    # If the contact point is not a robot, since ball and ground are already excluded,
+                    # this means that it is a contact with one of the goals.
+                    is_touching_goal = True
+            if "is_touching_goal" not in player or (player["is_touching_goal"] != is_touching_goal):
+                player["is_touching_goal"] = is_touching_goal
+                msg = "touching goal" if is_touching_goal else "not touching goal anymore"
+                self.logger.info(f"{team.color.capitalize()} {number} is {msg}")
 
     def update_robot_contacts(self):
         self.forceful_contact_matrix.clear(self.sim_time.get_ms())
@@ -894,6 +906,11 @@ class Referee:
         player['penalty_reason'] = reason
         if log is not None:
             self.logger.info(log)
+
+    def goal_collision_foul(self, team, number):
+        player = team.players[number]
+        msg = f'{team.color.capitalize()} player {number} collided with the goal for too long'
+        self.send_penalty(player, 'INCAPABLE', 'Collision with goal for too long', msg)
 
     def forceful_contact_foul(self, team, number, opponent_team, opponent_number, distance_to_ball, message):
         player = team.players[number]
@@ -1019,6 +1036,22 @@ class Referee:
                     continue
                 if self.check_team_forceful_contacts(self.blue_team, blue_number, self.red_team, red_number):
                     continue
+
+    def check_goal_collisions(self):
+        for team in [self.red_team, self.blue_team]:
+            for number, player in team.players.items():
+                # See update_team_robot_contacts (might not be initialized when first checking goal_collisions)
+                if "is_touching_goal" not in player:
+                    continue
+                if "goal_collision_buffer" not in player:
+                    size = int(1000 * self.config.GOAL_COLLISION_TIMEOUT / self.time_step)
+                    player["goal_collision_buffer"] = np.zeros(size, dtype=int)
+                goal_collision_buffer = player["goal_collision_buffer"]
+                index = int(self.sim_time.get_ms() / self.time_step) % len(player["goal_collision_buffer"])
+                player["goal_collision_buffer"][index] = 1 if player["is_touching_goal"] else 0
+                goal_collision_ratio = np.average(goal_collision_buffer)
+                if goal_collision_ratio > self.config.GOAL_COLLISION_RATIO:
+                    self.goal_collision_foul(team, number)
 
     def check_team_ball_holding(self, team):
         color = team.color
@@ -2430,6 +2463,7 @@ class Referee:
 
             if self.game.state.game_state != 'STATE_INITIAL':
                 self.check_fallen()                                # detect fallen robots
+                self.check_goal_collisions()
 
             if self.game.state.game_state == 'STATE_PLAYING' and self.game.in_play:
                 if not self.game.penalty_shootout:

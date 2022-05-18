@@ -1,4 +1,6 @@
 OUTSIDE_TURF_TIMEOUT: 20                 # a player outside the turf for more than 20 seconds gets a removal penalty
+GOAL_COLLISION_TIMEOUT: 30               # a player colliding with a goal for more than 30 seconds gets a removal penalty
+GOAL_COLLISION_RATIO: 0.5                # a player must be colliding with a goal for an average of more than 0.5 of the window time to commit a foul
 INVALID_GOALKEEPER_TIMEOUT: 1            # 1 second
 INACTIVE_GOALKEEPER_TIMEOUT: 20          # a goalkeeper is penalized if inactive for 20 seconds while the ball is in goal area
 INACTIVE_GOALKEEPER_DIST: 0.5            # if goalkeeper is farther than this distance it can't be inactive

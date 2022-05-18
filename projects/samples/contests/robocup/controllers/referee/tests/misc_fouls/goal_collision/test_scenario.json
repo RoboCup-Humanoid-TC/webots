@@ -1,0 +1,161 @@
+[
+    {
+    "description" : "Moving robots before ready to avoid penalties",
+    "timing" : {
+        "time" : 8.0,
+            "clock_type" : "Simulated",
+            "state" : "READY"
+        },
+        "actions" : [
+            {
+                "target" : "RED_PLAYER_1",
+                "position" : [4.3,2.06,0.24],
+                "orientation" : [0,0,1,3.14]
+            },
+            {
+                "target" : "RED_PLAYER_2",
+                "position" : [1.0,2,0.24],
+                "orientation" : [0,0,1,3.14]
+            },
+            {
+                "target" : "BLUE_PLAYER_1",
+                "position" : [-4.3,-2.06,0.24]
+            }
+        ]
+    },
+    {
+        "description" : "Set-up",
+        "timing" : {
+            "time" : 1.0,
+            "clock_type" : "Simulated",
+            "state" : "PLAYING"
+        },
+        "actions" : [
+            {
+                "target" : "RED_PLAYER_1",
+                "position" : [-4.4,1.39,0.23],
+                "orientation" : [-0.132,-0.0106,0.991,3.102]
+            },
+            {
+                "target" : "RED_PLAYER_2",
+                "position" : [-4.4,-1.39,0.23],
+                "orientation" : [-0.132,-0.0106,0.991,3.102]
+            },
+            {
+                "target" : "BLUE_PLAYER_1",
+                "position" : [4.4,-1.35,0.24],
+                "orientation" : [0,1,0,0.26]
+            }
+        ]
+    },
+    {
+        "description" : "Initial checks",
+        "timing" : {
+            "time" : [1,16],
+            "clock_type" : "Simulated",
+            "state" : "PLAYING"
+        },
+        "tests" : [
+            {
+                "name" : "A. Robots are not penalized for at least 15s (1)",
+                "target" : "RED_PLAYER_1",
+                "penalty" : 0
+            },
+            {
+                "name" : "B. Robots are not penalized for at least 15s (2)",
+                "target" : "RED_PLAYER_2",
+                "penalty" : 0
+            },
+            {
+                "name" : "C. Robots are not penalized for at least 15s (3)",
+                "target" : "BLUE_PLAYER_1",
+                "penalty" : 0
+            }
+        ]
+    },
+    {
+        "description" : "RED 1 and BLUE 1 move away from goal",
+        "timing" : {
+            "time" : 11.0,
+            "clock_type" : "Simulated",
+            "state" : "PLAYING"
+        },
+        "actions" : [
+            {
+                "target" : "RED_PLAYER_1",
+            "position" : [-4.5,1.1,0.24],
+            "orientation" : [0,0,1,3.14]
+            },
+            {
+                "target" : "BLUE_PLAYER_1",
+                "position" : [4.3,-1.35,0.24],
+                "orientation" : [0,0,1,3.14]
+            }
+        ]
+    },
+    {
+        "description" : "Only B gets penalized",
+        "timing" : {
+            "time" : [18,25],
+            "clock_type" : "Simulated",
+            "state" : "PLAYING"
+        },
+        "tests" : [
+            {
+                "name" : "A. Interrupted contact -> no penalty(1)",
+                "target" : "RED_PLAYER_1",
+                "penalty" : 0
+            },
+            {
+                "name" : "B. 15 seconds continuous contact -> penalty",
+                "target" : "RED_PLAYER_2",
+                "penalty" : 34
+            },
+            {
+                "name" : "C. Interrupted contact -> no penalty(2)",
+                "target" : "BLUE_PLAYER_1",
+                "penalty" : 0
+            }
+        ]
+    },
+    {
+        "description" : "BLUE 1 moves back to goal",
+        "timing" : {
+            "time" : 26.0,
+            "clock_type" : "Simulated",
+            "state" : "PLAYING"
+        },
+        "actions" : [
+            {
+                "target" : "BLUE_PLAYER_1",
+                "position" : [4.4,-1.35,0.24],
+                "orientation" : [0,1,0,0.26]
+            }
+        ]
+    },
+    {
+        "description" : "Both B and C are penalized",
+        "timing" : {
+            "time" : [32,35],
+            "clock_type" : "Simulated",
+            "state" : "PLAYING"
+        },
+        "tests" : [
+            {
+                "name" : "A. No new contact -> no penalty",
+                "target" : "RED_PLAYER_1",
+                "penalty" : 0
+            },
+            {
+                "name" : "B. Resumed contact -> penalty",
+                "target" : "RED_PLAYER_2",
+                "penalty" : 34
+            },
+            {
+                "name" : "C. 15 seconds continuous contact -> penalty",
+                "target" : "BLUE_PLAYER_1",
+                "penalty" : 34
+            }
+        ]
+    }
+]

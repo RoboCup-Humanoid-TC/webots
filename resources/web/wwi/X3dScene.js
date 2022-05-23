@@ -85,6 +85,7 @@ export default class X3dScene {
     }
 
     this.renderMinimal();
+    clearTimeout(this._renderingTimeout);
     this._loader = undefined;
     webots.currentView.runOnLoad = false;
   }
@@ -110,7 +111,14 @@ export default class X3dScene {
         const loader = new Parser(prefix);
         await loader.parse(xmlhttp.responseText, renderer);
         onLoad();
+      } else if (xmlhttp.status === 404) {
+        if (document.getElementById('webotsProgressMessage'))
+          document.getElementById('webotsProgressMessage').innerHTML = 'File not found: ' + url;
       }
+    };
+    xmlhttp.onerror = () => {
+      if (document.getElementById('webotsProgressMessage'))
+        document.getElementById('webotsProgressMessage').innerHTML = 'An unknown error occurred during the loading.';
     };
     xmlhttp.send();
   }

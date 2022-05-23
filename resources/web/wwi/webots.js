@@ -116,16 +116,7 @@ webots.View = class View {
     this.animation = new Animation(url, this.x3dScene, this, gui, loop);
   }
 
-  open(url, mode, texturePathPrefix = '') {
-    const userAgents = navigator.userAgent;
-    let chromeAgent = userAgents.indexOf('Chrome') > -1;
-    let safariAgent = userAgents.indexOf('Safari') > -1;
-
-    // Verify that chrome userAgent is false because safari userAgent is also included in Chrome browser.
-    if (!chromeAgent && safariAgent) {
-      alert('Safari does not have the technical capabilities to display a Webots simulation.\n\nPlease use a compatible browser (Chrome, Firefox, Edge, Opera).');
-      return;
-    }
+  open(url, mode) {
     this.url = url;
     if (typeof mode === 'undefined')
       mode = 'x3d';
@@ -182,7 +173,7 @@ webots.View = class View {
         document.getElementById('webotsProgressMessage').innerHTML = 'Loading World...';
       if (typeof this.x3dScene !== 'undefined') {
         if (!this._isWebSocketProtocol) { // skip robot windows initialization
-          if (this.animation != null)
+          if (typeof this.animation !== 'undefined')
             this.animation.init(loadFinalize);
           else
             loadFinalize();
@@ -209,6 +200,8 @@ webots.View = class View {
     if (this.broadcast)
       this.setTimeout(-1);
     this._isWebSocketProtocol = this.url.startsWith('ws://') || this.url.startsWith('wss://');
+
+    const texturePathPrefix = url.includes('/') ? url.substring(0, url.lastIndexOf('/') + 1) : '';
 
     if (mode === 'mjpeg') {
       this.url = url;

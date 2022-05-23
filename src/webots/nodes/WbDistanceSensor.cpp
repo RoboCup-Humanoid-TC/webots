@@ -333,11 +333,11 @@ void WbDistanceSensor::polarTo3d(double alpha, double theta, int i) {
 
   // first rotate around x-axis which is the sensors central ray axis
   const double x = cos(theta);
-  double z = -sin(theta);
+  double y = -sin(theta);
 
-  // then rotate around y-axis
-  const double y = -z * sin(alpha);
-  z *= cos(alpha);
+  // then rotate around z-axis
+  const double z = -y * sin(alpha);
+  y *= cos(alpha);
 
   mRays[i].setDirection(x, y, z);
 }
@@ -443,7 +443,7 @@ void WbDistanceSensor::setSensorRays() {
     if (mRays[i].geom()) {  // NOT INFRA_RED
       // get ray direction
       const WbVector3 &dir = mRays[i].direction();
-      assert(dir != WbVector3(0, 0, 0));
+      assert(!dir.isNull());
 
       // apply sensor's coordinate system transformation to rays
       WbVector3 r = m.sub3x3MatrixDot(dir);

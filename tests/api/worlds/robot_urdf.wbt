@@ -1,4 +1,4 @@
-#VRML_SIM R2021b utf8
+#VRML_SIM R2022a utf8
 WorldInfo {
   coordinateSystem "NUE"
 }
@@ -91,6 +91,18 @@ P-Rob3 {
   toolSlot [
     DEF GRIPPER P-Grip {
     }
+    TestSuiteEmitter {
+    }
+  ]
+}
+E-puck {
+  translation 0 0 -0.48
+  rotation 1 0 0 -1.5707953071795862
+  controller "robot_urdf"
+  controllerArgs [
+    "epuck"
+  ]
+  turretSlot [
     TestSuiteEmitter {
     }
   ]

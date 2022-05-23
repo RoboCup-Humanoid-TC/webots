@@ -43,7 +43,7 @@ The corresponding command line instruction will have the form:
 
     ``<controller_program_name> "controllerArgs[0]" "controllerArgs[1]" ...``
 
-    In case of C, C++, and Java controller programs the values are passed as arguments of the `main` function or method.
+    In case of C, C++, Python and Java controller programs the values are passed as arguments of the `main` function or method.
 
 - `customData`: this field may contain any user data, for example parameters corresponding to the configuration of the robot.
 It can be read from the robot controller using the `wb_robot_get_custom_data` function and can be written using the `wb_robot_set_custom_data` function.
@@ -491,6 +491,7 @@ namespace webots {
     Radar *getRadar(const std::string &name);
     RangeFinder *getRangeFinder(const std::string &name);
     Receiver *getReceiver(const std::string &name);
+    Skin *getSkin(const std::string &name);
     Speaker *getSpeaker(const std::string &name);
     TouchSensor *getTouchSensor(const std::string &name);
     // ...
@@ -545,6 +546,7 @@ public class Robot {
   public RangeFinder getRangeFinder(String name);
   public Receiver getReceiver(String name);
   public Speaker getSpeaker(String name);
+  public Skin *getSkin(String name);
   public TouchSensor getTouchSensor(String name);
   // ...
 }
@@ -1390,87 +1392,6 @@ wb_robot_set_custom_data('data')
 The `wb_robot_get_custom_data` function returns the string contained in the `customData` field of the robot node.
 
 The `wb_robot_set_custom_data` function set the string contained in the `customData` field of the robot node.
-
----
-
-#### `wb_robot_get_type`
-
-%tab-component "language"
-
-%tab "C"
-
-```c
-#include <webots/nodes.h>
-#include <webots/robot.h>
-
-WbNodeType wb_robot_get_type();
-```
-
-%tab-end
-
-%tab "C++"
-
-```cpp
-#include <webots/Robot.hpp>
-
-namespace webots {
-  class Robot {
-    int getType() const;
-    // ...
-  }
-}
-```
-
-%tab-end
-
-%tab "Python"
-
-```python
-from controller import Robot
-
-class Robot:
-    def getType(self):
-    # ...
-```
-
-%tab-end
-
-%tab "Java"
-
-```java
-import com.cyberbotics.webots.controller.Robot;
-
-public class Robot {
-  public int getType();
-  // ...
-}
-```
-
-%tab-end
-
-%tab "MATLAB"
-
-```MATLAB
-type = wb_robot_get_type()
-```
-
-%tab-end
-
-%tab "ROS"
-
-| name | service/topic | data type | data type definition |
-| --- | --- | --- | --- |
-| `/robot/get_type` | `service` | [`webots_ros::get_int`](ros-api.md#common-services) | |
-
-%tab-end
-
-%end
-
-##### Description
-
-*return the type of the robot node*
-
-This function returns the type of the current mode (WB\_NODE\_ROBOT or WB\_NODE\_SUPERVISOR).
 
 ---
 

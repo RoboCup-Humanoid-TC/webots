@@ -234,7 +234,7 @@ void WbController::start() {
   info(tr("Starting controller: %1").arg(commandLine()));
 
 #ifdef __linux__
-  if (!qgetenv("WEBOTS_FIREJAIL_CONTROLLERS").isEmpty() && mRobot->findField("controller")) {
+  if (WbPreferences::booleanEnvironmentVariable("WEBOTS_FIREJAIL_CONTROLLERS") && mRobot->findField("controller")) {
     mArguments.prepend(mCommand);
     mCommand = "firejail";
     QStringList firejailArguments;
@@ -516,11 +516,10 @@ void WbController::setProcessEnvironment() {
 #ifdef __APPLE__
     QProcess process;
     process.setProcessEnvironment(env);
-    process.start(mPythonCommand, QStringList() << "-c"
-                                                << "import sys; print(sys.exec_prefix);");
+    process.start("which", QStringList() << mPythonCommand);
     process.waitForFinished();
     const QString output = process.readAll();
-    if (output.startsWith("/usr/local/Cellar"))
+    if (output.startsWith("/usr/local/Cellar/python@"))
       addToPathEnvironmentVariable(
         env, "PYTHONPATH", WbStandardPaths::controllerLibPath() + "python" + mPythonShortVersion + "_brew", false, true);
     else
@@ -532,6 +531,8 @@ void WbController::setProcessEnvironment() {
 #endif
     env.insert("PYTHONIOENCODING", "UTF-8");
   } else if (mType == WbFileUtil::MATLAB) {
+    if (mMatlabCommand.isEmpty())
+      mMatlabCommand = WbPreferences::instance()->value("General/matlabCommand", "").toString();
     // these variables are read by lib/matlab/launcher.m
     env.insert("WEBOTS_PROJECT", WbProject::current()->current()->path().toUtf8());
     env.insert("WEBOTS_CONTROLLER_NAME", name().toUtf8());
@@ -647,7 +648,7 @@ void WbController::reportMissingCommand(const QString &command) {
 
 void WbController::reportFailedStart() {
   warn(tr("failed to start: %1").arg(commandLine()));
-
+  QString matlabDefaultPath;
   switch (mType) {
     case WbFileUtil::EXECUTABLE: {
       QFileInfo fi(mCommand);
@@ -672,7 +673,23 @@ void WbController::reportFailedStart() {
       reportMissingCommand("python");
       break;
     case WbFileUtil::MATLAB:
-      reportMissingCommand("matlab");
+      if (mCommand == "!")
+        warn(tr("Webots could not find the MATLAB executable in the system. Please provide the correct absolute path to the "
+                "MATLAB executable in the Webots preferences (Tools > Preferences... > General)."));
+      else
+        warn(tr("The MATLAB executable provided in the Webots preferences (Tools > Preferences... > General) could not be "
+                "started. Please provide the correct absolute path to the MATLAB executable."));
+#ifdef __linux__
+      matlabDefaultPath = "/usr/local/MATLAB/R20XXx/bin/matlab";
+#else
+#ifdef __APPLE__
+      matlabDefaultPath = "/Applications/MATLAB_R20XXx.app";
+#else  // _WIN32
+      matlabDefaultPath = "C:\\Program Files\\MATLAB\\R20XXx\\bin\\win64\\MATLAB.exe";
+#endif
+#endif
+      warn(tr("The preference can be left empty to use the default MATLAB installation path: %1").arg(matlabDefaultPath));
+
       break;
     default:
       break;
@@ -792,10 +809,14 @@ void WbController::startMatlab() {
     warn(tr("MATLAB controllers should be launched as extern controllers with the snap package of Webots."));
     return;
   }
+
   if (mMatlabCommand.isEmpty()) {
     mCommand = WbLanguageTools::matlabCommand();
-    if (mCommand == "!")  // Matlab 64 bit not available
+
+    if (mCommand.isEmpty()) {
+      mCommand = "!";
       return;
+    }
   } else
     mCommand = mMatlabCommand;
 

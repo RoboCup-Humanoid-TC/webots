@@ -23,20 +23,33 @@ The 3D navigation in the player is possible using the mouse or the touch screen,
 
 ### How to Export a Web Scene
 
-Select the `File / Export HTML5 Model...` menu item and choose the target `HTML` file in the pop-up dialog.
+Select the `File / Export HTML5 Scene...` menu item and choose the target `HTML` file in the pop-up dialog.
 When the export is completed, Webots will ask to playback the resulting file in the default Web browser.
 
-**Note**: The `X3D` file and the required textures are exported in the same directory as the target `HTML` file.
+**Note**: The `CSS` file, the `X3D` file and the required textures are exported in the same directory as the target `HTML` file.
+
+**Note**: The `CSS` file is meant to be used as a styling guide but can be modified/removed.
 
 **Note**: The playback option may not work correctly depending on your default Web browser.
 In this case, please refer to the [section below](#remarks-on-the-used-technologies-and-their-limitations).
 
 ### How to Embed a Web Scene in Your Website
 
-The exported `HTML` page is designed to be as simple as possible, and is the reference for an integration in an external Website.
+The exported `HTML` page is designed to be simple, and is the reference for an integration in an external Website. The exported `CSS` file can be replaced during the process.
 Alternatively, an `<iframe>` tag pointing to the generated Webots page is a less elegant but simpler solution.
 
 The resources (`CSS`, `JavaScript`, etc.) on the [Cyberbotics Website](https://www.cyberbotics.com) will be stored for long term, and can be used from an external Website.
+
+The web scene is displayed by a web component from the [WebotsView.js] package called `webots-view`.
+
+The following attribute is available:
+* `data-scene`: the name of the .x3d file containing the 3d scene. It is evaluated only once: when the page is loaded. If the `data-scene` attribute is set, the `webots-view` web-component will automatically try to load the web scene .
+
+For more complex interaction with the web component, the following functions are available:
+* `close()`: close the current scene. Note that if the `webots-view` element is removed from the HTML page or `loadScene`, `loadAnimation` or `connect` is called, `close` will be automatically called.
+* `loadScene(scene, mobileDevice)`: load and play the animation.
+  * `scene`: name of the .x3d file.
+  * `mobileDevice`: boolean variable specifying if the application is running on a mobile device.
 
 ### Limitations
 
@@ -46,6 +59,30 @@ The resources (`CSS`, `JavaScript`, etc.) on the [Cyberbotics Website](https://w
 It may occur that the rendering in the Webots application and in the exported Web page are not strictly equivalent.
 
 - The `Skin` node is not supported.
+- The [Pen](../reference/pen.md) device is not supported.
+
+- It is not possible to have more than one `webots-view` element on one page.
+
+- Once removed, it is not possible to recreate a `webots-view` element on the same page. However there is some workarounds:
+    - Reload the page
+    - Close the simulation (with `close()` in the case of animation and `disconnect()` in the case of streaming viewer) and hide the `webots-view` with the help of css.
+    - Keeping a reference to the `webots-view` element allows you to remove it from the page and insert it again. As in the following example:
+    ```
+    let webotsView;
+    function create() {
+      if (typeof webotsView === 'undefined') {
+        webotsView = document.createElement('webots-view');
+        webotsView.style = "height:80%; display:block;"
+      }
+      document.body.appendChild(webotsView)
+
+      webotsView.loadAnimation("scene.x3d", "animation.json")
+    }
+
+    function remove() {
+      document.body.removeChild(webotsView);
+    }
+    ```
 
 ### Remarks on the Used Technologies and Their Limitations
 

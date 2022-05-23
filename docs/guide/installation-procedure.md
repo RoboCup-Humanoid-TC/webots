@@ -19,7 +19,7 @@ The Debian package is aimed at the latest LTS Ubuntu Linux distribution whereas 
 All these packages can be installed from our [official GitHub repository](https://github.com/cyberbotics/webots/releases).
 
 The packages also contain a precompiled ROS API built with the latest recommended ROS distribution.
-For more details about the ROS version supported out of the box by each package please refer to [this section](tutorial-8-using-ros.md#check-compatibility-of-webots-ros-api).
+For more details about the ROS version supported out of the box by each package please refer to [this section](tutorial-9-using-ros.md#check-compatibility-of-webots-ros-api).
 
 > **Note**: Webots will run much faster if you install an accelerated OpenGL drivers.
 If you have a NVIDIA or AMD graphics card, it is highly recommended that you install the Linux graphics drivers from these manufacturers to take the full advantage of the OpenGL hardware acceleration with Webots.
@@ -32,14 +32,14 @@ The installation requires the `root` privileges.
 
 First of all, Webots should be authenticated with the [Cyberbotics.asc](https://cyberbotics.com/Cyberbotics.asc) signature file which can be installed using this command:
 
-```sh
+```bash
 wget -qO- https://cyberbotics.com/Cyberbotics.asc | sudo apt-key add -
 ```
 
 Then, you can configure your APT package manager by adding the Cyberbotics repository.
 Simply execute the following lines:
 
-```sh
+```bash
 sudo apt-add-repository 'deb https://cyberbotics.com/debian/ binary-amd64/'
 sudo apt-get update
 ```
@@ -54,13 +54,13 @@ deb https://cyberbotics.com/debian/ binary-amd64/
 When you close the window, the APT packages list should be automatically updated.
 Otherwise you can manually execute the following command:
 
-```sh
+```bash
 sudo apt-get update
 ```
 
 Then proceed to the installation of Webots using:
 
-```sh
+```bash
 sudo apt-get install webots
 ```
 
@@ -76,32 +76,32 @@ If a previous version of Webots is already installed, then the text on the butto
 
 Alternatively, the Debian package can also be installed using `apt` or `gdebi` with the `root` privileges:
 
-```sh
+```bash
 sudo apt install ./webots_{{ webots.version.debian_package }}_amd64.deb
 ```
 
 Or:
 
-```sh
+```bash
 sudo gdebi webots_{{ webots.version.debian_package }}_amd64.deb
 ```
 
 #### Installing the "tarball" Package
 
 This section explains how to install Webots from the tarball package (having the `.tar.bz2` extension).
-Note that for the old Ubuntu versions 18.04 you should download the `webots-R2020b-x86-64_ubuntu-18.04.tar.bz2` package.
+Note that for the old Ubuntu versions 18.04 you should download the `webots-R2022a-x86-64_ubuntu-18.04.tar.bz2` package.
 
 The tarball package can be installed without the `root` privileges.
 It can be extracted anywhere using the `tar` `xjf` command line.
 Once extracted, it is recommended to set the WEBOTS\_HOME environment variable to point to the `webots` directory obtained from the extraction of the tarball:
 
-```sh
+```bash
 tar xjf webots-{{ webots.version.package }}-x86-64.tar.bz2
 ```
 
 And:
 
-```sh
+```bash
 export WEBOTS_HOME=/home/username/webots
 ```
 
@@ -114,17 +114,21 @@ In this case an error message will be printed in the Webots console mentioning t
 Webots also needs the *ffmpeg* and *libavcodec-extra* packages to create MPEG-4 movies.
 Additionally *ubuntu-restricted-extras* could be needed to play the MPEG-4 movies encoded with H.264 codec.
 Execute the following commands to enable the video creation and playback on Debian / Ubuntu based distributions:
-```sh
+```bash
 sudo apt-get update
 sudo apt-get install ffmpeg libavcodec-extra
 sudo apt-get install ubuntu-restricted-extras
 ```
 Using Anaconda could cause errors when recording videos, as the default conda installation of *ffmpeg* does not have *x264* enabled.
 Execute the following command to install *ffmpeg* with *x264* support:
-```sh
+```bash
 conda install x264 ffmpeg -c conda-forge
 ```
-
+For SUMO, you will need to install libxerces-c-devel, libproj-devel, libgdal-devel, and fox16-devel.
+Execute the following commands to enable SUMO on Debian / Ubuntu based distributions:
+```bash
+sudo apt-get install libxerces-c-dev libfox-1.6-dev libgdal-dev libproj-dev libgl2ps-dev
+```
 
 #### Installing the Snap Package
 
@@ -156,7 +160,7 @@ The chapter entitled [running extern robot controllers](running-extern-robot-con
 
 These images can be used to run Webots in your continuous integration (CI) workflow without requiring any graphical user interface or to get a clean and sandboxed environment with Webots pre-installed including GPU accelerated graphical user interface.
 
-##### Install Docker
+##### Install Docker
 
 Follow the [Docker installation instructions](https://docs.docker.com/engine/install/#server) to install docker.
 
@@ -165,14 +169,14 @@ Follow the [Docker installation instructions](https://docs.docker.com/engine/ins
 The docker image comes with a X virtual framebuffer (Xvfb) already installed and configured so that you can run Webots in headless mode.
 
 To pull the image and start a docker container with it use the following command:
-```
+```bash
 docker run -it cyberbotics/webots:latest
 ```
 
-> **Note**: If you need a specific version of Webots or Ubuntu and not the latest ones, replace `latest` with the version you need (e.g. `R2020b-rev1-ubuntu20.04`).
+> **Note**: If you need a specific version of Webots or Ubuntu and not the latest ones, replace `latest` with the version you need (e.g. `R2021b-ubuntu20.04`).
 
 After starting the docker container you can start Webots headlessly using xvfb:
-```
+```bash
 xvfb-run webots --stdout --stderr --batch --mode=realtime /path/to/your/world/file
 ```
 
@@ -183,19 +187,19 @@ xvfb-run webots --stdout --stderr --batch --mode=realtime /path/to/your/world/fi
 ###### Without GPU Acceleration
 
 To run Webots with a graphical user interface in a docker container, you need to enable connections to the X server before starting the docker container:
-```
+```bash
 xhost +local:root > /dev/null 2>&1
 ```
 
 > **Note**: If you need to disable connections to the X server, you can do it with the following command: `xhost -local:root > /dev/null 2>&1`.
 
 You can then start the container with the following command:
-```
+```bash
 docker run -it -e DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix:rw cyberbotics/webots:latest
 ```
 
 Or if you want to directly launch Webots:
-```
+```bash
 docker run -it -e DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix:rw cyberbotics/webots:latest webots
 ```
 
@@ -207,8 +211,15 @@ Please follow the [official instructions](https://docs.nvidia.com/datacenter/clo
 > **Note**: GPU accelerated docker containers will work only with recent NVIDIA drivers and Docker versions (see the complete list of requirements [here](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html#pre-requisites)).
 
 Once this package is installed, use the same procedure than without GPU acceleration, but add the `--gpus=all` when starting the docker container:
-```
+```bash
 docker run --gpus=all -it -e DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix:rw cyberbotics/webots:latest
+```
+
+##### Upgrade to the Latest Webots Image
+
+If the latest Docker image was upgraded, e.g., with a new version of Webots, you should run the following command to upgrade your local copy:
+```bash
+docker pull cyberbotics/webots:latest
 ```
 
 ##### Troubleshooting
@@ -226,7 +237,7 @@ rm ~/.cache/fontconfig/*
 Webots requires some graphical features that are usually not available by default on a Linux server edition, [additional packages]({{ url.github_tree }}/scripts/install/linux_runtime_dependencies.sh) needs to be manually installed to make it work.
 
 Webots can be run without GUI using a virtual framebuffer such as [Xvfb](https://en.wikipedia.org/wiki/Xvfb):
-```
+```bash
 xvfb-run --auto-servernum webots --mode=fast --no-rendering --stdout --stderr --minimize --batch /path/to/world/file
 ```
 
@@ -300,12 +311,12 @@ Alternatively, you can double-click on the Webots icon to launch it.
 A [Homebrew package](https://formulae.brew.sh/cask/webots) is available for Webots.
 
 If brew is not already installed on your computer, install it with the following command in a terminal:
-```
+```bash
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/released/install.sh)"
 ```
 
 Webots can then be installed with:
-```
+```bash
 brew install --cask webots
 ```
 

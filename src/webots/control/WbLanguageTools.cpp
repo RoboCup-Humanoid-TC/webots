@@ -33,7 +33,6 @@ static const QChar PATHS_SEPARATOR(':');
 #endif
 
 static QString gJavaCommand;
-static QString gMatlabCommand;
 
 void WbLanguageTools::prependToPath(const QString &dir, QString &path) {
   if (path.isEmpty())
@@ -70,7 +69,7 @@ QString WbLanguageTools::pythonCommand(QString &shortVersion, const QString &com
     "To fix the problem, you should set the full path of your python command in "
     "Webots->preferences->python command.\n";
 #else
-    QObject::tr("Webots requires Python version 3.9, 3.8"
+    QObject::tr("Webots requires Python version 3.10, 3.9, 3.8"
 #ifdef __linux__
                 ", 3.7 or 3.6"  // we also support 3.6 on ubuntu 18.04
 #else
@@ -95,7 +94,8 @@ QString WbLanguageTools::pythonCommand(QString &shortVersion, const QString &com
   const QString output = process.readAll();
   // "3.6.3 (v3.6.3:2c5fed8, Oct  3 2017, 18:11:49) [MSC v.1900 64 bit (AMD64)]\nTrue\n" or the like
   const QStringList version = output.split("\n");
-  if (!version[0].startsWith("3.9.") && !version[0].startsWith("3.8.") && !version[0].startsWith("3.7.")) {
+  if (!version[0].startsWith("3.10.") && !version[0].startsWith("3.9.") && !version[0].startsWith("3.8.") &&
+      !version[0].startsWith("3.7.")) {
     WbLog::warning(QObject::tr("\"%1\" was not found.\n").arg(pythonCommand) + advice);
     pythonCommand = "!";
   } else if (version.size() > 1 && version[1].startsWith("False")) {
@@ -108,14 +108,22 @@ QString WbLanguageTools::pythonCommand(QString &shortVersion, const QString &com
     shortVersion = checkIfPythonCommandExist(pythonCommand, env, true);
   else {
     if (pythonCommand == "python" || pythonCommand == "python3") {
-      pythonCommand = findWorkingPythonPath("3.8", env, false);
-      shortVersion = "38";
-      if (pythonCommand == "!") {
+      pythonCommand = findWorkingPythonPath("3.10", env, false);
+      if (pythonCommand != "!")
+        shortVersion = "310";
+      else {
         pythonCommand = findWorkingPythonPath("3.9", env, false);
-        shortVersion = "39";
-        if (pythonCommand == "!") {
-          pythonCommand = findWorkingPythonPath("3.7", env, true);
-          shortVersion = "37";
+        if (pythonCommand != "!")
+          shortVersion = "39";
+        else {
+          pythonCommand = findWorkingPythonPath("3.8", env, false);
+          if (pythonCommand != "!")
+            shortVersion = "38";
+          else {
+            pythonCommand = findWorkingPythonPath("3.7", env, true);
+            if (pythonCommand != "!")
+              shortVersion = "37";
+          }
         }
       }
     } else if (pythonCommand == "python3.7") {
@@ -127,6 +135,9 @@ QString WbLanguageTools::pythonCommand(QString &shortVersion, const QString &com
     } else if (pythonCommand == "python3.9") {
       pythonCommand = findWorkingPythonPath("3.9", env, true);
       shortVersion = "39";
+    } else if (pythonCommand == "python3.10") {
+      pythonCommand = findWorkingPythonPath("3.10", env, true);
+      shortVersion = "310";
     } else
       shortVersion = checkIfPythonCommandExist(pythonCommand, env, true);
   }
@@ -135,7 +146,7 @@ QString WbLanguageTools::pythonCommand(QString &shortVersion, const QString &com
 
   if (pythonCommand == "!")
     WbLog::warning(QObject::tr("Python was not found.\n") + advice);
-#else  // Linux
+#else  // __linux__
     shortVersion = checkIfPythonCommandExist(pythonCommand, env, true);
   if (shortVersion.isEmpty()) {
     pythonCommand = "!";
@@ -161,8 +172,10 @@ const QString WbLanguageTools::checkIfPythonCommandExist(const QString &pythonCo
     if (log)
       WbLog::warning(QObject::tr("\"%1\" was not found.\n").arg(pythonCommand));
     shortVersion = QString();
-  } else
-    shortVersion = QString(version[0][0]) + version[0][2];
+  } else {
+    const QStringList version_numbers(version[0].split("."));
+    shortVersion = version_numbers[0] + version_numbers[1];
+  }
   return shortVersion;
 }
 #endif
@@ -195,35 +208,38 @@ const QStringList WbLanguageTools::pythonArguments() {
   return QStringList("-u");
 }
 
-const QString &WbLanguageTools::matlabCommand() {
-  if (gMatlabCommand.isEmpty()) {
-#ifdef _WIN32
-    // on Windows there are two MATLAB .exe files, one is located in
-    // bin/matlab.exe and the other one in bin/win64/MATLAB.exe.
-    // bin/matlab.exe is normally in the PATH, but we must call bin/win64/MATLAB.exe
-    // because bin/matlab.exe is just a launcher that causes problem with stdout/stderr
-    // and with the termination of the QProcess.
-    QString PATH = qgetenv("PATH");
-    QStringList dirs = PATH.split(';', Qt::SkipEmptyParts);
-    foreach (QString dir, dirs) {
-      if (QDir(dir).exists()) {
-        QString file = dir + "\\win64\\MATLAB.exe";
-        if (QFile::exists(file)) {
-          gMatlabCommand = file;
-          break;
-        }
-      }
-    }
-    if (gMatlabCommand.isEmpty()) {
-      WbLog::warning(QObject::tr("To run Matlab controllers, you need to install Matlab 64-bit and ensure it is available "
-                                 "from the DOS CMD.EXE console."));
-      gMatlabCommand = "!";
-    }
-#else
-    gMatlabCommand = "matlab";
-#endif
+QString WbLanguageTools::matlabCommand() {
+#ifdef __APPLE__
+  const QString matlabPath = "/Applications/";
+  const QString matlabAppWc = "MATLAB_R20???.app";
+  const QDir matlabDir(matlabPath);
+  const QStringList matlabVersions = matlabDir.entryList(QStringList() << matlabAppWc, QDir::Files, QDir::Name);
+  if (matlabVersions.isEmpty()) {
+    return "";
   }
-  return gMatlabCommand;
+#else
+  const QString matlabVersionsWc = "R20???";
+#ifdef _WIN32
+  const QString matlabPath = "C:\\Program Files\\MATLAB\\";
+  const QString matlabExecPath = "\\bin\\win64\\MATLAB.exe";
+#else  // __linux__
+  const QString matlabPath = "/usr/local/MATLAB/";
+  // cppcheck-suppress unreadVariable
+  const QString matlabExecPath = "/bin/matlab";
+#endif
+  const QDir matlabDir(matlabPath);
+  if (!matlabDir.exists()) {
+    return "";
+  }
+  const QStringList matlabVersions = matlabDir.entryList(QStringList() << matlabVersionsWc, QDir::Dirs, QDir::Name);
+#endif
+
+  QString command = matlabPath + matlabVersions.last();
+#if defined _WIN32 || defined __linux__
+  command += matlabExecPath;
+#endif
+
+  return command;
 }
 
 const QStringList WbLanguageTools::matlabArguments() {

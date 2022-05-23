@@ -15,6 +15,7 @@
 #include "WbCamera.hpp"
 
 #include "WbAffinePlane.hpp"
+#include "WbBasicJoint.hpp"
 #include "WbBoundingSphere.hpp"
 #include "WbDownloader.hpp"
 #include "WbFieldChecker.hpp"
@@ -154,13 +155,18 @@ WbCamera::~WbCamera() {
 }
 
 void WbCamera::downloadAssets() {
+  WbAbstractCamera::downloadAssets();
   const QString &noiseMaskUrl = mNoiseMaskUrl->value();
-  if (WbUrl::isWeb(noiseMaskUrl)) {
-    delete mDownloader;
-    mDownloader = new WbDownloader(this);
-    if (isPostFinalizedCalled())  // URL changed from the scene tree or supervisor
-      connect(mDownloader, &WbDownloader::complete, this, &WbCamera::updateNoiseMaskUrl);
-    mDownloader->download(QUrl(noiseMaskUrl));
+  if (!noiseMaskUrl.isEmpty()) {
+    const QString completeUrl = WbUrl::computePath(this, "url", noiseMaskUrl, false);
+
+    if (WbUrl::isWeb(completeUrl)) {
+      delete mDownloader;
+      mDownloader = new WbDownloader(this);
+      if (isPostFinalizedCalled())  // URL changed from the scene tree or supervisor
+        connect(mDownloader, &WbDownloader::complete, this, &WbCamera::updateNoiseMaskUrl);
+      mDownloader->download(QUrl(completeUrl));
+    }
   }
 }
 
@@ -715,8 +721,8 @@ WbVector2 WbCamera::projectOnImage(const WbVector3 &position) {
   const int h = height();
   const double fovX = fieldOfView();
   const double fovY = WbWrenCamera::computeFieldOfViewY(fovX, (double)w / h);
-  const double theta1 = atan2(position.x(), fabs(position.z()));
-  const double theta2 = atan2(position.y(), fabs(position.z()));
+  const double theta1 = -atan2(position.y(), fabs(position.x()));
+  const double theta2 = atan2(position.z(), fabs(position.x()));
   int u = (double)w * (0.5 * tan(theta1) / tan(0.5 * fovX) + 0.5);
   int v = (double)h * (0.5 - 0.5 * tan(theta2) / tan(0.5 * fovY));
   u = qMax(0, qMin(u, w - 1));
@@ -857,7 +863,14 @@ void WbCamera::createWrenCamera() {
   updateAmbientOcclusionRadius();
 
   updateLensFlare();
+  updateCameraOrientation();
   connect(mWrenCamera, &WbWrenCamera::cameraInitialized, this, &WbCamera::updateLensFlare);
+  connect(mWrenCamera, &WbWrenCamera::cameraInitialized, this, &WbCamera::updateCameraOrientation);
+
+  if (mSegmentationCamera) {
+    updateSegmentationCameraOrientation();
+    connect(mSegmentationCamera, &WbWrenCamera::cameraInitialized, this, &WbCamera::updateSegmentationCameraOrientation);
+  }
 }
 
 void WbCamera::createWrenOverlay() {
@@ -927,6 +940,14 @@ void WbCamera::render() {
   }
 }
 
+WbVector3 WbCamera::urdfRotation(const WbMatrix3 &rotationMatrix) const {
+  WbVector3 eulerRotation = rotationMatrix.toEulerAnglesZYX();
+  // Webots defines the camera frame as FLU but ROS desfines it as RDF (Right-Down-Forward)
+  eulerRotation[0] -= M_PI / 2;
+  eulerRotation[2] -= M_PI / 2;
+  return eulerRotation;
+}
+
 /////////////////////
 //  Update methods //
 /////////////////////
@@ -992,6 +1013,11 @@ void WbCamera::createSegmentationCamera() {
   updateOverlayMaskTexture();
   if (mExternalWindowEnabled)
     updateTextureUpdateNotifications(mExternalWindowEnabled);
+
+  if (mSegmentationCamera) {
+    updateSegmentationCameraOrientation();
+    connect(mSegmentationCamera, &WbWrenCamera::cameraInitialized, this, &WbCamera::updateSegmentationCameraOrientation);
+  }
 }
 
 void WbCamera::updateLensFlare() {
@@ -1003,6 +1029,20 @@ void WbCamera::updateLensFlare() {
     WrViewport *viewport = mWrenCamera->getSubViewport(WbWrenCamera::CAMERA_ORIENTATION_FRONT);
     lensFlare()->setup(viewport);
   }
+}
+
+void WbCamera::updateCameraOrientation() {
+  if (hasBeenSetup()) {
+    // FLU axis orientation
+    mWrenCamera->rotatePitch(M_PI_2);
+    mWrenCamera->rotateRoll(-M_PI_2);
+  }
+}
+
+void WbCamera::updateSegmentationCameraOrientation() {
+  // FLU axis orientation
+  mSegmentationCamera->rotatePitch(M_PI_2);
+  mSegmentationCamera->rotateRoll(-M_PI_2);
 }
 
 void WbCamera::updateNear() {
@@ -1071,8 +1111,9 @@ void WbCamera::updateNoiseMaskUrl() {
 
   QString noiseMaskUrl = mNoiseMaskUrl->value();
   if (!noiseMaskUrl.isEmpty()) {  // use custom noise mask
+    QString completeUrl = WbUrl::computePath(this, "url", noiseMaskUrl, false);
     QIODevice *device;
-    if (WbUrl::isWeb(noiseMaskUrl)) {
+    if (WbUrl::isWeb(completeUrl)) {
       if (isPostFinalizedCalled() && mDownloader == NULL) {
         // url was changed from the scene tree or supervisor
         downloadAssets();
@@ -1088,10 +1129,10 @@ void WbCamera::updateNoiseMaskUrl() {
       device = mDownloader->device();
       assert(device);
     } else {
-      noiseMaskUrl = WbUrl::computePath(this, "noiseMaskUrl", noiseMaskUrl);
+      completeUrl = WbUrl::computePath(this, "noiseMaskUrl", noiseMaskUrl);
       device = NULL;
     }
-    const QString error = mWrenCamera->setNoiseMask(noiseMaskUrl.toUtf8().constData(), device);
+    const QString error = mWrenCamera->setNoiseMask(completeUrl.toUtf8().constData(), device);
     if (!error.isEmpty())
       parsingWarn(error);
     delete mDownloader;

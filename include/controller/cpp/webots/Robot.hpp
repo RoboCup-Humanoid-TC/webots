@@ -85,7 +85,6 @@ namespace webots {
     int getNumberOfDevices() const;
     Device *getDeviceByIndex(int index);
     Device *getDevice(const std::string &name);
-    int getType() const;
 
     virtual void batterySensorEnable(int samplingPeriod);
     virtual void batterySensorDisable();
@@ -138,6 +137,7 @@ namespace webots {
     static int getDeviceTagFromName(const std::string &name);
 
   protected:
+    static Robot *cInstance;
     virtual Accelerometer *createAccelerometer(const std::string &name) const;
     virtual Altimeter *createAltimeter(const std::string &name) const;
     virtual Brake *createBrake(const std::string &name) const;
@@ -164,7 +164,6 @@ namespace webots {
     virtual TouchSensor *createTouchSensor(const std::string &name) const;
 
   private:
-    static Robot *cInstance;
     Keyboard *mKeyboard;
     Joystick *mJoystick;
     Mouse *mMouse;

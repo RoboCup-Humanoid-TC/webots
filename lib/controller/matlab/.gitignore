@@ -210,7 +210,6 @@ wb_receiver_get_data_size.m
 wb_receiver_get_signal_strength.m
 wb_robot_get_number_of_devices.m
 wb_robot_get_device_by_index.m
-wb_robot_get_type.m
 wb_robot_step.m
 wb_robot_wait_for_user_input_event.m
 wb_robot_battery_sensor_enable.m
@@ -278,11 +277,15 @@ wb_supervisor_node_get_number_of_fields.m
 wb_supervisor_node_get_proto_number_of_fields.m
 wb_supervisor_field_enable_sf_tracking.m
 wb_supervisor_field_disable_sf_tracking.m
+wb_supervisor_node_enable_contact_point_tracking.m
+wb_supervisor_node_disable_contact_point_tracking.m
 wb_supervisor_node_get_number_of_contact_points.m
 wb_supervisor_node_get_contact_point_node.m
 wb_supervisor_node_get_parent_node.m
 wb_supervisor_node_get_selected.m
 wb_supervisor_node_get_static_balance.m
+wb_supervisor_node_enable_pose_tracking.m
+wb_supervisor_node_disable_pose_tracking.m
 wb_supervisor_node_is_proto.m
 wb_supervisor_node_move_viewpoint.m
 wb_supervisor_node_set_visibility.m
@@ -294,10 +297,6 @@ wb_supervisor_node_add_torque.m
 wb_supervisor_node_reset_physics.m
 wb_supervisor_node_restart_controller.m
 wb_supervisor_node_remove.m
-wb_supervisor_node_disable_pose_tracking.m
-wb_supervisor_node_enable_pose_tracking.m
-wb_supervisor_node_enable_contact_point_tracking.m
-wb_supervisor_node_disable_contact_point_tracking.m
 wb_supervisor_node_export_string.m
 wb_supervisor_node_save_state.m
 wb_supervisor_node_load_state.m
@@ -471,6 +470,7 @@ WB_NODE_TRANSFORM.m
 WB_NODE_VIEWPOINT.m
 WB_NODE_ROBOT.m
 WB_NODE_ACCELEROMETER.m
+WB_NODE_ALTIMETER.m
 WB_NODE_BRAKE.m
 WB_NODE_CAMERA.m
 WB_NODE_COMPASS.m
@@ -492,6 +492,7 @@ WB_NODE_RADAR.m
 WB_NODE_RANGE_FINDER.m
 WB_NODE_RECEIVER.m
 WB_NODE_ROTATIONAL_MOTOR.m
+WB_NODE_SKIN.m
 WB_NODE_SPEAKER.m
 WB_NODE_TOUCH_SENSOR.m
 WB_NODE_BALL_JOINT.m
@@ -520,7 +521,6 @@ WB_NODE_WORLD_INFO.m
 WB_NODE_ZOOM.m
 WB_NODE_MICROPHONE.m
 WB_NODE_RADIO.m
-WB_NODE_SKIN.m
 WB_SUPERVISOR_SIMULATION_MODE_PAUSE.m
 WB_SUPERVISOR_SIMULATION_MODE_REAL_TIME.m
 WB_SUPERVISOR_SIMULATION_MODE_FAST.m

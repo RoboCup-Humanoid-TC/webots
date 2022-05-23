@@ -33,6 +33,9 @@
 
 void WbMesh::init() {
   mUrl = findMFString("url");
+  mName = findSFString("name");
+  mMaterialIndex = findSFInt("materialIndex");
+  mIsCollada = false;
   mResizeConstraint = WbWrenAbstractResizeManipulator::UNIFORM;
   mDownloader = NULL;
 }
@@ -56,13 +59,14 @@ void WbMesh::downloadAssets() {
   if (mUrl->size() == 0)
     return;
   const QString &url(mUrl->item(0));
-  if (WbUrl::isWeb(url)) {
+  const QString completeUrl = WbUrl::computePath(this, "url", url, false);
+  if (WbUrl::isWeb(completeUrl)) {
     delete mDownloader;
     mDownloader = new WbDownloader(this);
     if (!WbWorld::instance()->isLoading())  // URL changed from the scene tree or supervisor
       connect(mDownloader, &WbDownloader::complete, this, &WbMesh::downloadUpdate);
 
-    mDownloader->download(QUrl(url));
+    mDownloader->download(QUrl(completeUrl));
   }
 }
 
@@ -76,8 +80,8 @@ void WbMesh::downloadUpdate() {
 }
 
 void WbMesh::preFinalize() {
+  mIsCollada = (path().mid(path().lastIndexOf('.') + 1).toLower() == "dae");
   WbTriangleMeshGeometry::preFinalize();
-
   updateUrl();
 }
 
@@ -85,10 +89,28 @@ void WbMesh::postFinalize() {
   WbTriangleMeshGeometry::postFinalize();
 
   connect(mUrl, &WbMFString::changed, this, &WbMesh::updateUrl);
+  connect(mName, &WbSFString::changed, this, &WbMesh::updateName);
+  connect(mMaterialIndex, &WbSFInt::changed, this, &WbMesh::updateMaterialIndex);
 }
 
 void WbMesh::createResizeManipulator() {
   mResizeManipulator = new WbRegularResizeManipulator(uniqueId(), WbWrenAbstractResizeManipulator::ResizeConstraint::X_EQUAL_Z);
+}
+
+bool WbMesh::checkIfNameExists(const aiScene *scene, const QString &name) const {
+  std::list<aiNode *> queue;
+  queue.push_back(scene->mRootNode);
+  aiNode *node = NULL;
+  while (!queue.empty()) {
+    node = queue.front();
+    queue.pop_front();
+    for (unsigned int i = 0; i < node->mNumMeshes; ++i) {
+      const aiMesh *mesh = scene->mMeshes[node->mMeshes[i]];
+      if (name == mesh->mName.data)
+        return true;
+    }
+  }
+  return false;
 }
 
 void WbMesh::updateTriangleMesh(bool issueWarnings) {
@@ -105,11 +127,11 @@ void WbMesh::updateTriangleMesh(bool issueWarnings) {
 
   Assimp::Importer importer;
   importer.SetPropertyInteger(AI_CONFIG_PP_RVC_FLAGS, aiComponent_CAMERAS | aiComponent_LIGHTS | aiComponent_BONEWEIGHTS |
-                                                        aiComponent_ANIMATIONS | aiComponent_TEXTURES | aiComponent_COLORS |
-                                                        aiComponent_MATERIALS);
+                                                        aiComponent_ANIMATIONS | aiComponent_TEXTURES | aiComponent_COLORS);
   const aiScene *scene;
   unsigned int flags = aiProcess_ValidateDataStructure | aiProcess_Triangulate | aiProcess_GenSmoothNormals |
-                       aiProcess_JoinIdenticalVertices | aiProcess_OptimizeGraph | aiProcess_RemoveComponent;
+                       aiProcess_JoinIdenticalVertices | aiProcess_OptimizeGraph | aiProcess_RemoveComponent |
+                       aiProcess_FlipUVs;
   if (WbUrl::isWeb(filePath)) {
     if (mDownloader == NULL)
       downloadAssets();
@@ -133,12 +155,34 @@ void WbMesh::updateTriangleMesh(bool issueWarnings) {
     return;
   }
 
+  if (mIsCollada && mName->value() != "" && !checkIfNameExists(scene, mName->value())) {
+    warn(tr("Geometry with the name \"%1\" doesn't exist in the mesh.").arg(mName->value()));
+    return;
+  }
+
+  if (mIsCollada && mMaterialIndex->value() >= (int)scene->mNumMaterials) {
+    warn(tr("Geometry with color index \"%1\" doesn't exist in the mesh.").arg(mMaterialIndex->value()));
+    return;
+  }
+
+  // Assimp fix for up_axis, adapted from https://github.com/assimp/assimp/issues/849
+  if (mIsCollada)  // rotate around X by 90° to swap Y and Z axis
+    scene->mRootNode->mTransformation =
+      aiMatrix4x4(1, 0, 0, 0, 0, 0, -1, 0, 0, 1, 0, 0, 0, 0, 0, 1) * scene->mRootNode->mTransformation;
+
   // count total number of vertices and faces
   int totalVertices = 0;
   int totalFaces = 0;
   for (unsigned int i = 0; i < scene->mNumMeshes; ++i) {
-    totalVertices += scene->mMeshes[i]->mNumVertices;
-    totalFaces += scene->mMeshes[i]->mNumFaces;
+    const aiMesh *mesh = scene->mMeshes[i];
+    if (mIsCollada && !mName->value().isEmpty() && mName->value() != mesh->mName.data)
+      continue;
+
+    if (mIsCollada && mMaterialIndex->value() >= 0 && mMaterialIndex->value() != (int)mesh->mMaterialIndex)
+      continue;
+
+    totalVertices += mesh->mNumVertices;
+    totalFaces += mesh->mNumFaces;
   }
 
   // create the arrays
@@ -171,6 +215,11 @@ void WbMesh::updateTriangleMesh(bool issueWarnings) {
     // merge all the meshes of this node
     for (unsigned int i = 0; i < node->mNumMeshes; ++i) {
       const aiMesh *mesh = scene->mMeshes[node->mMeshes[i]];
+      if (mIsCollada && mName->value() != "" && mName->value() != mesh->mName.data)
+        continue;
+
+      if (mIsCollada && mMaterialIndex->value() >= 0 && mMaterialIndex->value() != (int)mesh->mMaterialIndex)
+        continue;
 
       for (size_t j = 0; j < mesh->mNumVertices; ++j) {
         // extract the coordinate
@@ -238,8 +287,8 @@ void WbMesh::updateTriangleMesh(bool issueWarnings) {
 }
 
 uint64_t WbMesh::computeHash() const {
-  const QByteArray meshPath = path().toUtf8();
-  return WbTriangleMeshCache::sipHash13x(meshPath.constData(), meshPath.size());
+  const QString meshPathNameIndex = path() + (mIsCollada ? mName->value() + QString::number(mMaterialIndex->value()) : "");
+  return WbTriangleMeshCache::sipHash13x(meshPathNameIndex.toUtf8().constData(), meshPathNameIndex.size());
 }
 
 void WbMesh::exportNodeContents(WbVrmlWriter &writer) const {
@@ -448,6 +497,12 @@ void WbMesh::exportNodeContents(WbVrmlWriter &writer) const {
 }
 
 void WbMesh::updateUrl() {
+  // check url validity
+  if (path().isEmpty())
+    return;
+
+  mIsCollada = (path().mid(path().lastIndexOf('.') + 1).toLower() == "dae");
+
   // we want to replace the windows backslash path separators (if any) with cross-platform forward slashes
   const int n = mUrl->size();
   for (int i = 0; i < n; i++) {
@@ -466,6 +521,31 @@ void WbMesh::updateUrl() {
     if (n > 0)
       emit wrenObjectsCreated();  // throw signal to update pickable state
   }
+
+  if (isAValidBoundingObject())
+    applyToOdeData();
+
+  if (isPostFinalizedCalled())
+    emit changed();
+}
+
+void WbMesh::updateName() {
+  if (!mIsCollada)
+    return;
+
+  if (areWrenObjectsInitialized())
+    buildWrenMesh(true);
+
+  if (isPostFinalizedCalled())
+    emit changed();
+}
+
+void WbMesh::updateMaterialIndex() {
+  if (!mIsCollada)
+    return;
+
+  if (areWrenObjectsInitialized())
+    buildWrenMesh(true);
 
   if (isPostFinalizedCalled())
     emit changed();

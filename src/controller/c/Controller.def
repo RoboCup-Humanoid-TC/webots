@@ -107,6 +107,7 @@ wb_gps_enable
 wb_gps_get_coordinate_system
 wb_gps_get_sampling_period
 wb_gps_get_speed
+wb_gps_get_speed_vector
 wb_gps_get_values
 wb_gyro_disable
 wb_gyro_enable
@@ -270,7 +271,6 @@ wb_robot_get_project_path
 wb_robot_get_supervisor
 wb_robot_get_synchronization
 wb_robot_get_time
-wb_robot_get_type
 wb_robot_get_urdf
 wb_robot_get_world_path
 wb_robot_init

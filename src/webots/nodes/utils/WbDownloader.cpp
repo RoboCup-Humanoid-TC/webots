@@ -100,6 +100,7 @@ void WbDownloader::download(const QUrl &url) {
   else
     request.setAttribute(QNetworkRequest::CacheLoadControlAttribute, QNetworkRequest::PreferCache);
 
+  assert(mNetworkReply == NULL);
   mNetworkReply = WbNetwork::instance()->networkAccessManager()->get(request);
   connect(mNetworkReply, &QNetworkReply::finished, this, &WbDownloader::finished, Qt::UniqueConnection);
   connect(WbApplication::instance(), &WbApplication::worldLoadingWasCanceled, mNetworkReply, &QNetworkReply::abort);
@@ -114,9 +115,8 @@ void WbDownloader::finished() {
       mError = tr("Cannot download %1: %2").arg(mUrl.toString()).arg(mNetworkReply->errorString());
     disconnect(mNetworkReply, &QNetworkReply::finished, this, &WbDownloader::finished);
     if (!mError.isEmpty() && !mOffline) {
-      mError = QString();
-      mOffline = true;
-      download(mUrl);
+      connect(mNetworkReply, &QObject::destroyed, this, &WbDownloader::destroyed);
+      mNetworkReply->deleteLater();
       return;
     }
 
@@ -146,6 +146,13 @@ void WbDownloader::finished() {
     WbSimulationState::instance()->resumeSimulation();
   } else if (gDisplayPopUp)
     emit WbApplication::instance()->setWorldLoadingProgress(progress());
+}
+
+void WbDownloader::destroyed() {
+  mNetworkReply = NULL;
+  mError = QString();
+  mOffline = true;
+  download(mUrl);
 }
 
 void WbDownloader::displayPopUp() {

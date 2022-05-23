@@ -34,6 +34,7 @@
 #include "WbWrenRenderingContext.hpp"
 #include "WbWrenShaders.hpp"
 
+#include <wren/camera.h>
 #include <wren/gl_state.h>
 #include <wren/material.h>
 #include <wren/node.h>
@@ -179,7 +180,8 @@ WbBackground::~WbBackground() {
 }
 
 void WbBackground::downloadAsset(const QString &url, int index, bool postpone) {
-  if (!WbUrl::isWeb(url))
+  const QString completeUrl = WbUrl::computePath(this, "url", url, false);
+  if (!WbUrl::isWeb(completeUrl))
     return;
   if (index < 6) {
     delete mTexture[index];
@@ -194,7 +196,7 @@ void WbBackground::downloadAsset(const QString &url, int index, bool postpone) {
   if (postpone)
     connect(mDownloader[index], &WbDownloader::complete, this, &WbBackground::downloadUpdate);
 
-  mDownloader[index]->download(QUrl(url));
+  mDownloader[index]->download(QUrl(completeUrl));
 }
 
 void WbBackground::downloadAssets() {
@@ -235,6 +237,7 @@ void WbBackground::activate() {
 
   connect(mLuminosity, &WbSFDouble::changed, this, &WbBackground::updateLuminosity);
   connect(mSkyColor, &WbMFColor::changed, this, &WbBackground::updateColor);
+  connect(WbWorld::instance()->viewpoint(), &WbViewpoint::cameraModeChanged, this, &WbBackground::updateCubemap);
   for (int i = 0; i < 6; ++i) {
     connect(mUrlFields[i], &WbMFString::changed, this, &WbBackground::updateCubemap);
     connect(mIrradianceUrlFields[i], &WbMFString::changed, this, &WbBackground::updateCubemap);
@@ -328,9 +331,10 @@ void WbBackground::updateCubemap() {
       for (int i = 0; i < 6; i++) {
         if (hasCompleteBackground) {
           const QString &url = mUrlFields[i]->item(0);
-          if (WbUrl::isWeb(url)) {
+          const QString completeUrl = WbUrl::computePath(this, "url", url, false);
+          if (WbUrl::isWeb(completeUrl)) {
             if (mDownloader[i] == NULL) {
-              downloadAsset(url, i, true);
+              downloadAsset(completeUrl, i, true);
               postpone = true;
             }
           } else {
@@ -340,9 +344,10 @@ void WbBackground::updateCubemap() {
         }
         if (mIrradianceUrlFields[i]->size() > 0) {
           const QString &irradianceUrl = mIrradianceUrlFields[i]->item(0);
-          if (WbUrl::isWeb(irradianceUrl)) {
+          const QString completeUrl = WbUrl::computePath(this, "url", irradianceUrl, false);
+          if (WbUrl::isWeb(completeUrl)) {
             if (mDownloader[i + 6] == NULL) {
-              downloadAsset(irradianceUrl, i + 6, true);
+              downloadAsset(completeUrl, i + 6, true);
               postpone = true;
             }
           } else {
@@ -530,7 +535,7 @@ bool WbBackground::loadIrradianceTexture(int i) {
     const QString url =
       WbUrl::computePath(this, QString("%1IrradianceUrl").arg(gDirections[i]), mIrradianceUrlFields[j]->item(0), false);
     if (url.isEmpty()) {
-      warn(tr("%1IrradianceUrl not found: '%2'").arg(gDirections[i], mUrlFields[i]->item(0)));
+      warn(tr("%1IrradianceUrl not found: '%2'").arg(gDirections[i], mIrradianceUrlFields[j]->item(0)));
       return false;
     }
     device = new QFile(url);
@@ -616,7 +621,9 @@ void WbBackground::applySkyBoxToWren() {
     wr_material_set_texture_cubemap_wrap_r(mSkyboxMaterial, WR_TEXTURE_WRAP_MODE_CLAMP_TO_EDGE, 0);
     wr_material_set_texture_cubemap_wrap_s(mSkyboxMaterial, WR_TEXTURE_WRAP_MODE_CLAMP_TO_EDGE, 0);
     wr_material_set_texture_cubemap_wrap_t(mSkyboxMaterial, WR_TEXTURE_WRAP_MODE_CLAMP_TO_EDGE, 0);
-    wr_scene_set_skybox(wr_scene_get_instance(), mSkyboxRenderable);
+
+    if (WbWorld::instance()->viewpoint()->projectionMode() != WR_CAMERA_PROJECTION_MODE_ORTHOGRAPHIC)
+      wr_scene_set_skybox(wr_scene_get_instance(), mSkyboxRenderable);
   }
 
   // 2. Load the irradiance map

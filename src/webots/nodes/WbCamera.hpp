@@ -63,6 +63,7 @@ public:
   virtual WrTexture *getWrenTexture();
 
 protected:
+  WbVector3 urdfRotation(const WbMatrix3 &rotationMatrix) const override;
   void setup() override;
   void render() override;
   bool needToRender() const override;
@@ -142,6 +143,8 @@ private slots:
   void updateBloomThreshold();
   void updateNoiseMaskUrl();
   void updateLensFlare();
+  void updateCameraOrientation();
+  void updateSegmentationCameraOrientation();
   void applyFocalSettingsToWren();
   void applyFarToWren();
   void applyNearToWren() override;

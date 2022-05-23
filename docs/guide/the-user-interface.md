@@ -62,18 +62,9 @@ This feature is useful for importing complex objects that were modeled in a 3D m
 Once imported, these objects appear as [Group](../reference/group.md), [Transform](../reference/transform.md), [Solid](../reference/solid.md) or [Shape](../reference/shape.md) nodes at the bottom of the scene tree.
 You can then either turn these objects into Webots nodes (e.g. [Robot](../reference/robot.md)) or cut and paste them into the `children` list of existing Webots nodes.
 The following formats are supported:
-  - [3D Studio mesh](https://wiki.fileformat.com/3d/3ds) files (.3ds).
-  - [Blender](https://www.blender.org/) files (.blend).
-  - [Biovision Hierarchy](https://en.wikipedia.org/wiki/Biovision_Hierarchy) files (.bvh).
   - [Collada](https://en.wikipedia.org/wiki/COLLADA) files (.dae).
-  - [Filmbox](https://en.wikipedia.org/wiki/FBX) files (.fbx).
   - [STL](https://en.wikipedia.org/wiki/STL_(file_format)) files (.stl).
-  - [VRML](https://en.wikipedia.org/wiki/VRML) files (.wrl).
   - [Wavefront](https://wiki.fileformat.com/3d/obj) files (.obj).
-  - [X3D](https://www.web3d.org/getting-started-x3d) files (.x3d).
-
-> **Note:** About [VRML](https://en.wikipedia.org/wiki/VRML) files, only VRML97 is supported (previously called VRML 2.0) Webots cannot import files in VRML 1.0 format.
-
 
 - The **Export VRML97...** item allows you to save the currently loaded world as a ".wrl" file, conforming to the VRML97 standard.
 Such a file can, in turn, be opened with any VRML97 viewer and most 3D modeling software.
@@ -97,7 +88,7 @@ Checking the video caption option will display the acceleration value in the top
 
 %end
 
-- The **Export HTML5 Model...** item allows you to export the current world as an interactive 3D ".html" file.
+- The **Export HTML5 Scene...** item allows you to export the current world as an interactive 3D ".html" file.
 You can get more information about this topic in [this section](web-scene.md).
 
 - ![](images/animation-button.png =26x26) The **Make HTML5 Animation...** item allows you to record a simulation as a 3D animation and publish it on a HTML5 web page.
@@ -216,7 +207,7 @@ If the light sensor device is disabled or the first measurement is not available
   - The **Show Pen Painting Rays** allows you to display, or to hide, the rays in which the pen devices paint.
 These rays are drawn as violet lines if painting is enabled, otherwise as gray lines.
 
-  - The **Show Normals** allows you to display, or to hide, the normals of the [IndexedFaceSet](../reference/indexedfaceset.md) and [Mesh](../reference/mesh.md) nodes. The color of a normal is magenta if it was not creased using the [IndexedFaceSet](../reference/indexedfaceset.md) `creaseAngle`, otherwise, it is yellow. The length of the normal representation is proportional to the [WorldInfo](../reference/worldinfo.md) `lineScale` parameter.  
+  - The **Show Normals** allows you to display, or to hide, the normals of the [IndexedFaceSet](../reference/indexedfaceset.md) and [Mesh](../reference/mesh.md) nodes. The color of a normal is magenta if it was not creased using the [IndexedFaceSet](../reference/indexedfaceset.md) `creaseAngle`, otherwise, it is yellow. The length of the normal representation is proportional to the [WorldInfo](../reference/worldinfo.md) `lineScale` parameter.
 
   - The **Show Radar Frustums** allows you to display, or to hide, the radar frustum.
 If the radar device is enabled the frustum is drawn in blue, otherwise if the radar is disabled or the first measurement is not available yet, the frustum is drawn in gray.
@@ -244,7 +235,7 @@ These options can be used to improve interacting with the 3D scene by disabling 
 
   - The **Disable 3D View Context Menu** option prevents opening the node context menu when right-clicking on the 3D window.
   But the context menu can still be open right-clicking on the node in the scene tree.
-  This is particularly useful during web streaming, where the context menu is opened directly on client web interface and it is not needed to open in on the Webots server instance.  
+  This is particularly useful during web streaming, where the context menu is opened directly on client web interface and it is not needed to open in on the Webots server instance.
 
   - The **Disable Object Move** option prevents moving object from the 3D window using the translation and rotations handles or the `SHIFT + mouse drag/mouse wheel` method.
   Objects can still be moved by changing the translation and rotation fields from the scene tree.
@@ -284,7 +275,7 @@ The build menu is described in more details [here](webots-built-in-editor.md).
 ### Overlays Menu
 
 The **Overlays** menu provides actions specific to rendering device overlays ([Camera](../reference/camera.md), [Display](../reference/display.md), `Rangefinder`).
-Some actions of this menu are active only when a robot is selected in the 3D window or when there is only one robot in the simulation:
+Some actions of this menu are active only when a robot is selected in the 3D window:
 
 - The **Camera Devices** submenu contains the list of all the camera devices of the selected robot and its descendant robots and lets the user show or hide single camera overlay images by checking or unchecking the corresponding item.
 Camera overlays differ from the display overlays because of their magenta border.

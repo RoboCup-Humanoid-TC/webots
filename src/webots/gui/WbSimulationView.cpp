@@ -478,6 +478,10 @@ void WbSimulationView::updateVisibility() {
 }
 
 void WbSimulationView::unmuteSound() {
+  if (!WbSoundEngine::openAL()) {
+    WbLog::warning("no audio device found.");
+    return;
+  }
   WbPreferences::instance()->setValue("Sound/mute", false);
   const WbSimulationState::Mode mode = WbSimulationState::instance()->mode();
   if (mode != WbSimulationState::FAST && WbSimulationState::instance()->isRendering())
@@ -1064,12 +1068,6 @@ WbRobot *WbSimulationView::selectedRobot() const {
     // cppcheck-suppress knownConditionTrueFalse
     if (robot)
       return robot;
-  }
-
-  if (WbWorld::instance()) {
-    const QList<WbRobot *> &robotList = WbWorld::instance()->robots();
-    if (robotList.size() == 1)
-      return robotList.first();
   }
 
   return NULL;

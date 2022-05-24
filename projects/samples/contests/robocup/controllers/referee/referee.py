@@ -1906,7 +1906,7 @@ class Referee:
             self.config.HALF_TIME_BREAK_REAL_TIME_DURATION = 2
 
         # check game type
-        if self.game.type not in ['NORMAL', 'KNOCKOUT', 'PENALTY']:
+        if self.game.type not in ['NORMAL', 'KNOCKOUT', 'PENALTY', 'NORULES']:
             self.logger.error(f'Unsupported game type: {self.game.type}.')
             self.clean_exit()
 
@@ -2112,6 +2112,11 @@ class Referee:
             if self.game.state is None:
                 self.sim_time.progress_ms(self.time_step)
                 continue
+
+            # if mode is 'NORULES' the referee has to skip all rules checking
+            if self.game.type == 'NORULES':
+                continue
+
             self.stabilize_robots()
             send_play_state_after_penalties = False
             previous_position = copy.deepcopy(self.game.ball_position)
